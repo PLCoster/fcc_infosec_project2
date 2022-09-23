@@ -35,14 +35,15 @@ const replySchema = new mongoose.Schema({
 const threadSchema = new mongoose.Schema({
   board_name: String,
   text: String,
-  created_on: { type: Date, default: Date.now },
+  created_on: Date,
   delete_password: String,
   reported: { type: Boolean, default: false },
-  bumped_on: { type: Date, default: Date.now },
-  replies: [replySchema],
+  bumped_on: Date,
+  replies: { type: [replySchema], default: [] },
+  reply_count: { type: Number, default: 0 },
 });
 
-const Replies = mongoose.model('replies', replySchema);
-const Threads = mongoose.model('threads', threadSchema);
+const Reply = mongoose.model('replies', replySchema);
+const Thread = mongoose.model('threads', threadSchema);
 
-module.exports = { Replies, Threads };
+module.exports = { Reply, Thread };
