@@ -1,28 +1,34 @@
 {
-	"name": "boilerplate-project-messagebaord",
-	"version": "0.0.1",
-	"description": "InfoSec project for freeCodeCamp",
-	"main": "server.js",
-	"scripts": {
-		"start": "node server.js"
-	},
-	"dependencies": {
-		"body-parser": "^1.15.2",
-		"chai": "^4.2.0",
-		"chai-http": "^3.0.0",
-		"cors": "^2.8.1",
-		"dotenv": "^8.2.0",
-		"express": "^4.14.0",
-		"helmet": "^3.1.0",
-		"mocha": "^3.2.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/freeCodeCamp/boilerplate-project-messageboard"
-	},
-	"keywords": [
-		"node",
-		"express"
-	],
-	"license": "MIT"
+  "name": "fcc_infosec_project2",
+  "version": "0.0.2",
+  "description": "Free Code Camp InfoSec Project 2: Anonymous Message Board",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "RUN_MODE=development nodemon server.js",
+    "test": "NODE_ENV=test mocha --timeout 5000 --recursive --exit --ui tdd tests/"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "chai": "^4.2.0",
+    "chai-http": "^3.0.0",
+    "cors": "^2.8.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.14.0",
+    "helmet": "^3.1.0",
+    "mocha": "^10.0.0",
+    "mongoose": "^6.6.1",
+    "nodemon": "^2.0.20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freeCodeCamp/boilerplate-project-messageboard"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "mongoose",
+    "mocha"
+  ],
+  "license": "MIT"
 }
