@@ -30,6 +30,9 @@ const sampleThreads = new Array(10).fill({}).map((el, i) => {
   };
 });
 
+// To hold a created Thread object for access in later tests
+let SampleThread;
+
 suite('Functional Tests', function () {
   suite('API Route Tests', function () {
     suiteSetup(function (done) {
@@ -37,13 +40,20 @@ suite('Functional Tests', function () {
       Thread.deleteMany({})
         .then((res) => {
           if (!res.acknowledged) {
-            throw new Error('API Suite Setup - Database Deletion Failed');
+            throw new Error(
+              'Error during API Suite Setup - Database Deletion Failed',
+            );
           }
 
           // Add Sample Threads and Replies to Collection
           return Thread.insertMany(sampleThreads);
         })
         .then((result) => {
+          if (!result) {
+            throw new Error(
+              'Error during API Suite Setup - Insertion of sample threads failed',
+            );
+          }
           done();
         })
         .catch((err) => done(err));
@@ -54,7 +64,9 @@ suite('Functional Tests', function () {
       Thread.deleteMany({})
         .then((res) => {
           if (!res.acknowledged) {
-            throw new Error('API Suite Teardown - Database Deletion Failed');
+            throw new Error(
+              'Error during API Suite Teardown - Database Deletion Failed',
+            );
           }
           done();
         })
@@ -119,6 +131,9 @@ suite('Functional Tests', function () {
               res.body.bumped_on,
               'Newly created Thread should have matching created_on and bumped_on date values',
             );
+
+            // Store this Thread Document for access in future tests
+            sampleThread = res.body;
             done();
           })
           .catch((err) => done(err));
@@ -249,6 +264,35 @@ suite('Functional Tests', function () {
             done();
           })
           .catch((err) => done(err));
+      });
+
+      test('PUT /api/threads/{board} with a valid board and thread_id reports a thread', function (done) {
+        const body = {
+          thread_id: sampleThread._id,
+        };
+        const board_name = sampleThread.board_name;
+
+        const expectedResponse = 'reported';
+
+        chai
+          .request(server)
+          .put(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response body should be "reported"',
+            );
+
+            done();
+          });
       });
     });
   });

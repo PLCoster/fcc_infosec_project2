@@ -1,4 +1,5 @@
 const { Reply, Thread } = require('../models/dbModels');
+const { ObjectId } = require('mongoose').Types;
 
 const threadController = {};
 
@@ -11,6 +12,32 @@ threadController.validateBoardName = (req, res, next) => {
     return res.json({
       // !!! non-200 error code?
       error: 'Board name cannot contain non-alphanumeric characters',
+    });
+  }
+
+  return next();
+};
+
+// Valid Thread and Reply _id are 24 alphanumeric characters
+// If validated, ObjectIds are placed on res.locals
+threadController.validateThreadAndReplyIDs = (req, res, next) => {
+  const { thread_id, reply_id } = req.body;
+
+  if (!thread_id) {
+    return res.json({
+      error: 'Required thread_id field missing from request body',
+    });
+  }
+
+  try {
+    res.locals.thread_id = ObjectId(thread_id);
+    if (reply_id) {
+      res.locals.reply_id = ObjectId(reply_id);
+    }
+  } catch (err) {
+    return res.json({
+      error:
+        'Supplied thread_id and/or reply_id is not valid - must be 24 alphanumeric characters',
     });
   }
 
@@ -86,7 +113,6 @@ threadController.getTenMostRecentThreads = (req, res, next) => {
   // Get 10 most recent board posts each with 3 most recent replies
   Thread.find(
     { board_name },
-    // '-delete_password -__v -reported -replies.delete_password -replies.expire_after_seconds -replies.reported',
     {
       delete_password: 0,
       __v: 0,
@@ -112,6 +138,36 @@ threadController.getTenMostRecentThreads = (req, res, next) => {
     })
     .catch((err) => {
       return next(err.message);
+    });
+};
+
+// Middleware to report a Thread on a given board by its _id
+// Requires threadController.validateThreadAndReplyIDs to be called first
+threadController.reportThreadByID = (req, res, next) => {
+  const { board: board_name } = req.params;
+  const { thread_id } = res.locals;
+
+  if (!thread_id || !board_name) {
+    return res.json({
+      error:
+        'Missing required field to report a Thread: Require non-empty "thread_id" field in body and "board" URL parameter',
+    });
+  }
+
+  // Try to get Thread on Board:
+  Thread.findOneAndUpdate({ board_name, _id: thread_id }, { reported: true })
+    .then((result) => {
+      if (result === null) {
+        return res.json({
+          error: `Could not find Thread ${thread_id} on Board ${board_name} to report, please try again`,
+        });
+      }
+      next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.reportThreadByID when trying to report a Thread: ${err.message}`,
+      );
     });
 };
 

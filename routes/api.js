@@ -2,8 +2,10 @@
 
 const {
   validateBoardName,
+  validateThreadAndReplyIDs,
   createThread,
   getTenMostRecentThreads,
+  reportThreadByID,
 } = require('../controllers/threadcontroller');
 
 module.exports = function (app) {
@@ -22,10 +24,14 @@ module.exports = function (app) {
     })
 
     // PUT request to /api/threads/:board reports a Thread
-    .put(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    })
+    .put(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      reportThreadByID,
+      (req, res) => {
+        return res.json('reported');
+      },
+    )
 
     // DELETE request to /api/threads/:board deletes Thread
     .delete(validateBoardName, (req, res) => {
