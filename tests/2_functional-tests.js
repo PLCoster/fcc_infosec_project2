@@ -294,6 +294,67 @@ suite('Functional Tests', function () {
             done();
           });
       });
+
+      test('PUT /api/threads/{board} with a non-existent Thread returns an error JSON', function (done) {
+        const body = {
+          thread_id: sampleThread._id,
+        };
+        const board_name = 'nonexistentboard';
+
+        const expectedResponse = {
+          error: `Could not find Thread ${body.thread_id} on Board ${board_name} to report, please try again`,
+        };
+
+        chai
+          .request(server)
+          .put(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response Object should have "error" key and Thread not found message',
+            );
+            done();
+          });
+      });
+
+      test('PUT /api/threads/{board} with an invalid thread_id returns an error JSON', function (done) {
+        const body = {
+          thread_id: 'invalidID',
+        };
+        const board_name = sampleThread.board_name;
+
+        const expectedResponse = {
+          error:
+            'Supplied thread_id and/or reply_id is not valid - must be 24 alphanumeric characters',
+        };
+
+        chai
+          .request(server)
+          .put(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response Object should have "error" key and invalid thread_id message',
+            );
+            done();
+          });
+      });
     });
   });
 });
