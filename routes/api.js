@@ -6,6 +6,7 @@ const {
   createThread,
   getTenMostRecentThreads,
   reportThreadByID,
+  deleteThreadByID,
 } = require('../controllers/threadcontroller');
 
 module.exports = function (app) {
@@ -34,10 +35,15 @@ module.exports = function (app) {
     )
 
     // DELETE request to /api/threads/:board deletes Thread
-    .delete(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    });
+    .delete(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      deleteThreadByID,
+      (req, res) => {
+        console.log('DELETE ROUTE');
+        return res.json('success');
+      },
+    );
 
   // POST request to /api/replies/:board adds Reply to Thread
   app

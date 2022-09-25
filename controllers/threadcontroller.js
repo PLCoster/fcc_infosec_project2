@@ -171,4 +171,56 @@ threadController.reportThreadByID = (req, res, next) => {
     });
 };
 
+// Middleware to delete a Thread on a given board by _id
+// Requires threadController.validateThreadAndReplyIDs to be called first
+threadController.deleteThreadByID = (req, res, next) => {
+  const { board: board_name } = req.params;
+  const { delete_password } = req.body;
+  const { thread_id } = res.locals;
+
+  if (!thread_id || !delete_password || !board_name) {
+    return res.json({
+      // !!! non-200 error code?
+      error:
+        'Missing required fields to delete a Thread - Require non-empty "thread_id" and "delete_password" body fields and non-empty "board" URL parameter',
+    });
+  }
+
+  // Find thread based on given fields
+  Thread.findOne({ board_name, _id: thread_id })
+    .then((threadDoc) => {
+      if (!threadDoc) {
+        console.log('ERROR1');
+        return res.json({
+          error: `Thread ${thread_id} on Board ${board_name} not found for deletion`,
+        });
+      }
+
+      console.log(threadDoc, delete_password);
+
+      if (threadDoc.delete_password !== delete_password) {
+        console.log('ERROR 2');
+        return res.json('incorrect password');
+      }
+
+      // Otherwise Thread exists and password is correct, delete it:
+      return Thread.deleteOne({
+        _id: thread_id,
+        delete_password,
+      });
+    })
+    .then((deleteResult) => {
+      // console.log('DELETE RESULT: ', deleteResult);
+      if (deleteResult.deletedCount !== 1) {
+        throw new Error('No document was deleted in database');
+      }
+      return next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.deleteThreadByID when trying to delete Thread Document: ${err.message}`,
+      );
+    });
+};
+
 module.exports = threadController;

@@ -31,7 +31,8 @@ const sampleThreads = new Array(10).fill({}).map((el, i) => {
 });
 
 // To hold a created Thread object for access in later tests
-let SampleThread;
+let sampleThread;
+let threadToDelete;
 
 suite('Functional Tests', function () {
   suite('API Route Tests', function () {
@@ -261,6 +262,11 @@ suite('Functional Tests', function () {
                   'Thread replies should be numbered 3, 4, 5 in replies Array',
                 );
               });
+
+            // Store Thread Document to be deleted in later test
+            threadToDelete = threadArr[1]; // Sample Thread 10
+            threadToDelete.delete_password = sampleThreads[9].delete_password; // Sample Thread 10 password
+
             done();
           })
           .catch((err) => done(err));
@@ -310,7 +316,7 @@ suite('Functional Tests', function () {
           .put(`/api/threads/${board_name}`)
           .send(body)
           .then((res) => {
-            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
             assert.equal(
               res.type,
               'application/json',
@@ -329,7 +335,7 @@ suite('Functional Tests', function () {
         const body = {
           thread_id: 'invalidID',
         };
-        const board_name = sampleThread.board_name;
+        const board_name = validBoardName;
 
         const expectedResponse = {
           error:
@@ -341,7 +347,7 @@ suite('Functional Tests', function () {
           .put(`/api/threads/${board_name}`)
           .send(body)
           .then((res) => {
-            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
             assert.equal(
               res.type,
               'application/json',
@@ -355,6 +361,41 @@ suite('Functional Tests', function () {
             done();
           });
       });
+
+      test('DELETE /api/threads/{board} with a valid thread_id and correct delete_password deletes a thread', function (done) {
+        const body = {
+          thread_id: threadToDelete._id,
+          delete_password: threadToDelete.delete_password,
+        };
+
+        const board_name = validBoardName;
+
+        const expectedResponse = 'success';
+
+        chai
+          .request(server)
+          .delete(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response should be "success", indicating Thread was deleted',
+            );
+
+            // !!! Check that post is now deleted
+            done();
+          })
+          .catch((err) => done(err));
+      });
     });
+
+    // !!! ADD TESTS FOR INVALID DELETE REQUESTS
   });
 });
