@@ -4,7 +4,6 @@ const assert = chai.assert;
 const server = require('../server');
 
 const { Thread } = require('../models/dbModels');
-const e = require('express');
 
 chai.use(chaiHttp);
 
@@ -808,6 +807,81 @@ suite('Functional Tests', function () {
               res.body,
               sampleThread,
               'Response body should be the sample Thread Document, with nothing changed, as Reply was not added',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('PUT /api/replies/{board} with valid reply_id, thread_id and board reports the reply', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+        const { _id: reply_id } = sampleThread.replies[0];
+        const body = { thread_id, reply_id };
+
+        const expectedResponse = 'reported';
+
+        chai
+          .request(server)
+          .put(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response body should be "reported" string to indicate successful report of Reply',
+            );
+
+            // Check that reply has been reported correctly
+            return chai.request(server).get(`/api/thread_info/${thread_id}`);
+          })
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(res.body.replies[0]._id, reply_id);
+            assert.isTrue(
+              res.body.replies[0].reported,
+              'Reply on Thread should now be reported',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('PUT /api/replies/{board} with non-existent reply, returns "reply not found" error', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+        // Reply _id cannot be same as thread_id - reply does not exist
+        const reply_id = thread_id;
+        const body = { thread_id, reply_id };
+
+        const expectedResponse = {
+          error: `Reply ${reply_id} on Thread ${thread_id} on Board ${board_name} not found`,
+        };
+
+        chai
+          .request(server)
+          .put(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response should be "error" object with "non-existent reply" message',
             );
             done();
           })

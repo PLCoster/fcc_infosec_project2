@@ -9,6 +9,7 @@ const {
   deleteThreadByID,
   getThreadByID,
   addReplyToThreadByID,
+  reportReplyByID,
   _getFullThreadInfoByID,
 } = require('../controllers/threadcontroller');
 
@@ -71,12 +72,15 @@ module.exports = function (app) {
       },
     )
 
-    // https://stackoverflow.com/questions/26156687/mongoose-find-update-subdocument
     // PUT request to /api/replies/:board reports a Reply
-    .put(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    })
+    .put(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      reportReplyByID,
+      (req, res) => {
+        return res.json('reported');
+      },
+    )
 
     // DELETE request to /api/replies/:board deletes a Reply
     .delete(validateBoardName, (req, res) => {

@@ -235,7 +235,6 @@ threadController.getThreadByID = (req, res, next) => {
       }
 
       res.locals.threadDocument = threadDocument;
-      console.log('RETURNING THREAD: ', threadDocument);
       return next();
     })
     .catch((err) => {
@@ -285,6 +284,44 @@ threadController.addReplyToThreadByID = (req, res, next) => {
     .catch((err) => {
       return next(
         `Error in threadController.addReplyToThreadByID when trying to add Reply to Thread: ${err.message}`,
+      );
+    });
+};
+
+// Middleware to report a Reply on a Thread by reply_id, thread_id and board
+// Requires threadController.validateThreadAndReplyIDs to be called first
+// https://stackoverflow.com/questions/26156687/mongoose-find-update-subdocument
+threadController.reportReplyByID = (req, res, next) => {
+  const { thread_id: _id, reply_id } = res.locals;
+  const { board: board_name } = req.params;
+
+  if (!_id || !reply_id || !board_name) {
+    return res.json({
+      // !!! non-200 error code?
+      error:
+        'Missing required fields to report a Reply - Require non-empty "thread_id" and "reply_id" body fields and non-empty "board" URL parameter',
+    });
+  }
+
+  Thread.findOneAndUpdate(
+    { _id, board_name, 'replies._id': reply_id },
+    { 'replies.$.reported': true },
+    {
+      new: true,
+    },
+  )
+    .then((threadDocument) => {
+      if (!threadDocument) {
+        return res.json({
+          error: `Reply ${reply_id} on Thread ${_id} on Board ${board_name} not found`,
+        });
+      }
+
+      return next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.reportReplyByID when trying to update Reply in Thread: ${err.message}`,
       );
     });
 };
