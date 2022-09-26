@@ -190,35 +190,50 @@ threadController.deleteThreadByID = (req, res, next) => {
   Thread.findOne({ board_name, _id: thread_id })
     .then((threadDoc) => {
       if (!threadDoc) {
-        console.log('ERROR1');
         return res.json({
           error: `Thread ${thread_id} on Board ${board_name} not found for deletion`,
         });
       }
 
-      console.log(threadDoc, delete_password);
-
       if (threadDoc.delete_password !== delete_password) {
-        console.log('ERROR 2');
         return res.json('incorrect password');
       }
 
       // Otherwise Thread exists and password is correct, delete it:
-      return Thread.deleteOne({
+      Thread.deleteOne({
         _id: thread_id,
         delete_password,
+      }).then((deleteResult) => {
+        // console.log('DELETE RESULT: ', deleteResult);
+        if (deleteResult.deletedCount !== 1) {
+          throw new Error('No document was deleted in database');
+        }
+        return next();
       });
-    })
-    .then((deleteResult) => {
-      // console.log('DELETE RESULT: ', deleteResult);
-      if (deleteResult.deletedCount !== 1) {
-        throw new Error('No document was deleted in database');
-      }
-      return next();
     })
     .catch((err) => {
       return next(
         `Error in threadController.deleteThreadByID when trying to delete Thread Document: ${err.message}`,
+      );
+    });
+};
+
+// Middleware used during Testing only - Returns all fields of Thread by ID
+threadController.getFullThreadInfoByID = (req, res, next) => {
+  const { _id } = req.params;
+
+  Thread.findOne({ _id })
+    .then((threadDocument) => {
+      if (!threadDocument) {
+        return res.json('Thread not found');
+      }
+
+      res.locals.threadDocument = threadDocument;
+      return next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.getFullThreadInfo when trying to find a Thread: ${err.message}`,
       );
     });
 };

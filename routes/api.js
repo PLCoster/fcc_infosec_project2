@@ -1,5 +1,6 @@
 'use strict';
 
+const threadController = require('../controllers/threadcontroller');
 const {
   validateBoardName,
   validateThreadAndReplyIDs,
@@ -7,6 +8,7 @@ const {
   getTenMostRecentThreads,
   reportThreadByID,
   deleteThreadByID,
+  getFullThreadInfoByID,
 } = require('../controllers/threadcontroller');
 
 module.exports = function (app) {
@@ -40,7 +42,6 @@ module.exports = function (app) {
       validateThreadAndReplyIDs,
       deleteThreadByID,
       (req, res) => {
-        console.log('DELETE ROUTE');
         return res.json('success');
       },
     );
@@ -73,4 +74,13 @@ module.exports = function (app) {
       // !!!
       return res.json('TO DO!');
     });
+
+  // Testing only route to get full thread information
+  if (process.env.NODE_ENV === 'test') {
+    app
+      .route('/api/thread_info/:_id')
+      .get(getFullThreadInfoByID, (req, res) => {
+        return res.json(res.locals.threadDocument);
+      });
+  }
 };

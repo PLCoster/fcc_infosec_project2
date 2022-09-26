@@ -135,6 +135,7 @@ suite('Functional Tests', function () {
 
             // Store this Thread Document for access in future tests
             sampleThread = res.body;
+            sampleThread.delete_password = body.delete_password;
             done();
           })
           .catch((err) => done(err));
@@ -297,13 +298,33 @@ suite('Functional Tests', function () {
               'Response body should be "reported"',
             );
 
+            // Check that thread is now reported:
+            return chai
+              .request(server)
+              .get(`/api/thread_info/${body.thread_id}`);
+          })
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.isTrue(
+              res.body.reported,
+              'Thread Document "reported" property should be "true"',
+            );
+
+            // Update local Thread Document to match one in DB for future tests
+            sampleThread.reported = true;
             done();
-          });
+          })
+          .catch((err) => done(err));
       });
 
       test('PUT /api/threads/{board} with a non-existent Thread returns an error JSON', function (done) {
         const body = {
-          thread_id: sampleThread._id,
+          thread_id: threadToDelete._id,
         };
         const board_name = 'nonexistentboard';
 
@@ -327,8 +348,26 @@ suite('Functional Tests', function () {
               expectedResponse,
               'Response Object should have "error" key and Thread not found message',
             );
+
+            // Check that thread remains unreported:
+            return chai
+              .request(server)
+              .get(`/api/thread_info/${body.thread_id}`);
+          })
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.isFalse(
+              res.body.reported,
+              'Thread Document "reported" property should be "false"',
+            );
             done();
-          });
+          })
+          .catch((err) => done(err));
       });
 
       test('PUT /api/threads/{board} with an invalid thread_id returns an error JSON', function (done) {
@@ -359,7 +398,8 @@ suite('Functional Tests', function () {
               'Response Object should have "error" key and invalid thread_id message',
             );
             done();
-          });
+          })
+          .catch((err) => done(err));
       });
 
       test('DELETE /api/threads/{board} with a valid thread_id and correct delete_password deletes a thread', function (done) {
@@ -389,13 +429,167 @@ suite('Functional Tests', function () {
               'Response should be "success", indicating Thread was deleted',
             );
 
-            // !!! Check that post is now deleted
+            return chai
+              .request(server)
+              .get(`/api/thread_info/${body.thread_id}`);
+          })
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              'Thread not found',
+              'Thread should not be found in Database after deletion',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('DELETE /api/threads/{board} with a valid thread_id but incorrect password does not delete thread', function (done) {
+        const body = {
+          thread_id: sampleThread._id,
+          delete_password: 'badpassword123',
+        };
+
+        const board_name = validBoardName;
+
+        const expectedResponse = 'incorrect password';
+
+        chai
+          .request(server)
+          .delete(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response should be "incorrect password", indicating Thread was not deleted',
+            );
+
+            return chai
+              .request(server)
+              .get(`/api/thread_info/${body.thread_id}`);
+          })
+          .then((threadInfoRes) => {
+            assert.equal(
+              threadInfoRes.status,
+              200,
+              'Response status should be 200',
+            ); // !!!
+            assert.equal(
+              threadInfoRes.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepInclude(
+              threadInfoRes.body,
+              sampleThread,
+              'Thread should still exist since deletion has failed',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('DELETE /api/threads/{board} with a valid thread_id and password but wrong board name does not delete thread', function (done) {
+        const body = {
+          thread_id: sampleThread._id,
+          delete_password: sampleThread.delete_password,
+        };
+
+        const board_name = 'wrongboardname';
+
+        const expectedResponse = {
+          error: `Thread ${body.thread_id} on Board ${board_name} not found for deletion`,
+        };
+
+        chai
+          .request(server)
+          .delete(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response should be "thread not found", error object',
+            );
+
+            // Ensure thread was not deleted
+            return chai
+              .request(server)
+              .get(`/api/thread_info/${body.thread_id}`);
+          })
+          .then((threadInfoRes) => {
+            assert.equal(
+              threadInfoRes.status,
+              200,
+              'Response status should be 200',
+            ); // !!!
+            assert.equal(
+              threadInfoRes.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepInclude(
+              threadInfoRes.body,
+              sampleThread,
+              'Thread should still exist since deletion has failed',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('DELETE /api/threads/{board} with a non-existent thread_id', function (done) {
+        const body = {
+          thread_id: '0000007b7800494a175bf2bf', // Valid but non-existent id
+          delete_password: 'bad_password',
+        };
+
+        const board_name = 'wrongboardname';
+
+        const expectedResponse = {
+          error: `Thread ${body.thread_id} on Board ${board_name} not found for deletion`,
+        };
+
+        chai
+          .request(server)
+          .delete(`/api/threads/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response should be "thread not found", error object',
+            );
+
             done();
           })
           .catch((err) => done(err));
       });
     });
-
-    // !!! ADD TESTS FOR INVALID DELETE REQUESTS
   });
 });
