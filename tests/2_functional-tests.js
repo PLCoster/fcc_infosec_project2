@@ -4,6 +4,7 @@ const assert = chai.assert;
 const server = require('../server');
 
 const { Thread } = require('../models/dbModels');
+const e = require('express');
 
 chai.use(chaiHttp);
 
@@ -33,6 +34,8 @@ const sampleThreads = new Array(10).fill({}).map((el, i) => {
 // To hold a created Thread object for access in later tests
 let sampleThread;
 let sampleThreadPassword;
+let sampleReply;
+let sampleReplyPassword;
 let threadToDelete;
 
 suite('Functional Tests', function () {
@@ -88,7 +91,6 @@ suite('Functional Tests', function () {
           '_id',
           'board_name',
           'text',
-          'reported',
           'created_on',
           'bumped_on',
           'replies',
@@ -98,7 +100,6 @@ suite('Functional Tests', function () {
         const expectedResponse = {
           board_name,
           text: body.text,
-          reported: false,
           replies: [],
           reply_count: 0,
         };
@@ -136,6 +137,7 @@ suite('Functional Tests', function () {
 
             // Store this Thread Document for access in future tests
             sampleThread = res.body;
+
             sampleThreadPassword = body.delete_password;
             done();
           })
@@ -316,8 +318,6 @@ suite('Functional Tests', function () {
               'Thread Document "reported" property should be "true"',
             );
 
-            // Update local Thread Document to match one in DB for future tests
-            sampleThread.reported = true;
             done();
           })
           .catch((err) => done(err));
@@ -646,6 +646,168 @@ suite('Functional Tests', function () {
               res.body,
               expectedResponse,
               'Response body should be an error object with "thread not found" message',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('POST /api/replies/{board} with valid board, thread_id, text and delete_password fields returns adds a Reply to a Thread', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+
+        const text = 'Example of a Reply';
+        const delete_password = 'reply_password';
+
+        const body = {
+          thread_id,
+          text,
+          delete_password,
+        };
+
+        const expectedReplyCount = sampleThread.reply_count + 1;
+        const expectedReplyKeys = ['_id', 'text', 'created_on'];
+        const expectedReply = { text };
+
+        chai
+          .request(server)
+          .post(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.isObject(
+              res.body,
+              'Response body should be a Thread Document object',
+            );
+            assert.equal(
+              res.body.reply_count,
+              expectedReplyCount,
+              'Thread reply count should be implemented as reply is added',
+            );
+            assert.equal(
+              res.body.replies.length,
+              expectedReplyCount,
+              'Reply Array should contain a single Reply Document',
+            );
+            assert.isTrue(
+              new Date(sampleThread.bumped_on) < new Date(res.body.bumped_on),
+              'Adding a reply should update the "bumped_on" field of Thread to current time',
+            );
+
+            const reply = res.body.replies[0];
+            assert.hasAllKeys(
+              reply,
+              expectedReplyKeys,
+              'Reply Document should have all expected Keys, and no "delete_password" or "reported" keys',
+            );
+            assert.deepInclude(
+              reply,
+              expectedReply,
+              'Reply Document should have expected deterministic values',
+            );
+
+            // Store details of sample Thread and Reply for later tests
+            sampleThread = res.body;
+            sampleReply = reply;
+            sampleReplyPassword = delete_password;
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('POST /api/replies/{board} with completed Reply fields but a non-existent Thread returns a "thread not found" error', function (done) {
+        const { _id: thread_id } = sampleThread;
+        const board_name = 'nonexistentboard';
+
+        const text = 'Example of a Reply';
+        const delete_password = 'reply_password';
+
+        const body = {
+          thread_id,
+          text,
+          delete_password,
+        };
+
+        const expectedResponse = {
+          error: `Thread ${thread_id} on Board ${board_name} not found`,
+        };
+
+        chai
+          .request(server)
+          .post(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response body should be error object with "thread not found" message',
+            );
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('POST /api/replies/{board} with valid thread_id and board, but missing Reply fields, returns "missing required fields" error', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+
+        const text = '';
+        const delete_password = '';
+
+        const body = {
+          thread_id,
+          text,
+          delete_password,
+        };
+
+        const expectedResponse = {
+          error:
+            'Missing required fields to create a new Reply - Require non-empty "thread_id", "text" and "delete_password" body fields and non-empty "board" URL parameter',
+        };
+
+        chai
+          .request(server)
+          .post(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response body should be error object with "missing required fields" message',
+            );
+
+            // Check that no reply has been added to the Thread
+            return chai
+              .request(server)
+              .get(`/api/replies/${board_name}?thread_id=${thread_id}`);
+          })
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              sampleThread,
+              'Response body should be the sample Thread Document, with nothing changed, as Reply was not added',
             );
             done();
           })

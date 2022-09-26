@@ -8,6 +8,7 @@ const {
   reportThreadByID,
   deleteThreadByID,
   getThreadByID,
+  addReplyToThreadByID,
   _getFullThreadInfoByID,
 } = require('../controllers/threadcontroller');
 
@@ -61,10 +62,14 @@ module.exports = function (app) {
     )
 
     // POST request to /api/replies/:board creates Reply on Thread
-    .post(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    })
+    .post(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      addReplyToThreadByID,
+      (req, res) => {
+        return res.json(res.locals.threadDocument);
+      },
+    )
 
     // https://stackoverflow.com/questions/26156687/mongoose-find-update-subdocument
     // PUT request to /api/replies/:board reports a Reply

@@ -1,6 +1,19 @@
 const { Reply, Thread } = require('../models/dbModels');
 const { ObjectId } = require('mongoose').Types;
 
+// Mongoose option object for specifying fields not to return
+const desiredFieldsToRemove = {
+  delete_password: 0,
+  __v: 0,
+  reported: 0,
+  'replies.delete_password': 0,
+  'replies.expire_after_seconds': 0,
+  'replies.reported': 0,
+  // replies: { // Cannot seem to limit replies and exclude reply fields at the same time
+  //   $slice: -3,
+  // },
+};
+
 const threadController = {};
 
 // Valid board names contain only [a-zA-Z0-9] characters
@@ -58,7 +71,7 @@ threadController.createThread = (req, res, next) => {
     return res.json({
       // !!! non-200 error code?
       error:
-        'Missing required fields to create a new Thread - Require non-empty "text" and "delete_password" query parameters and non-empty "board" URL parameter',
+        'Missing required fields to create a new Thread - Require non-empty "text" and "delete_password" body fields and non-empty "board" URL parameter',
     });
   }
 
@@ -77,22 +90,20 @@ threadController.createThread = (req, res, next) => {
         _id,
         board_name,
         text,
-        reported,
         created_on,
         bumped_on,
-        replies,
         reply_count,
+        replies,
       } = document;
 
       res.locals.createdThread = {
         _id,
         board_name,
         text,
-        reported,
         created_on,
         bumped_on,
-        replies,
         reply_count,
+        replies,
       };
 
       return next();
@@ -116,20 +127,7 @@ threadController.getTenMostRecentThreads = (req, res, next) => {
   }
 
   // Get 10 most recent board posts each with 3 most recent replies
-  Thread.find(
-    { board_name },
-    {
-      delete_password: 0,
-      __v: 0,
-      reported: 0,
-      'replies.delete_password': 0,
-      'replies.expire_after_seconds': 0,
-      'replies.reported': 0,
-      // replies: { // Cannot seem to limit replies and exclude reply fields at the same time
-      //   $slice: -3,
-      // },
-    },
-  )
+  Thread.find({ board_name }, desiredFieldsToRemove)
     .sort({ bumped_on: -1 })
     .limit(10)
     .then((documents) => {
@@ -209,7 +207,6 @@ threadController.deleteThreadByID = (req, res, next) => {
         _id: thread_id,
         delete_password,
       }).then((deleteResult) => {
-        // console.log('DELETE RESULT: ', deleteResult);
         if (deleteResult.deletedCount !== 1) {
           throw new Error('No document was deleted in database');
         }
@@ -229,7 +226,7 @@ threadController.getThreadByID = (req, res, next) => {
   const { thread_id: _id } = res.locals;
   const { board: board_name } = req.params;
 
-  Thread.findOne({ _id, board_name })
+  Thread.findOne({ _id, board_name }, desiredFieldsToRemove)
     .then((threadDocument) => {
       if (!threadDocument) {
         return res.json({
@@ -238,11 +235,56 @@ threadController.getThreadByID = (req, res, next) => {
       }
 
       res.locals.threadDocument = threadDocument;
+      console.log('RETURNING THREAD: ', threadDocument);
       return next();
     })
     .catch((err) => {
       return next(
         `Error in threadController.getThreadByID when trying to find a Thread: ${err.message}`,
+      );
+    });
+};
+
+// Middleware to add a Reply to a Thread by the Thread's ID
+// Requires threadController.validateThreadAndReplyIDs to be called first
+threadController.addReplyToThreadByID = (req, res, next) => {
+  const { thread_id: _id } = res.locals;
+  const { board: board_name } = req.params;
+  const { text, delete_password } = req.body;
+
+  if (!text || !delete_password || !board_name || !_id) {
+    return res.json({
+      // !!! non-200 error code?
+      error:
+        'Missing required fields to create a new Reply - Require non-empty "thread_id", "text" and "delete_password" body fields and non-empty "board" URL parameter',
+    });
+  }
+
+  // Otherwise add reply to Thread, return Thread with new reply
+  Thread.findOneAndUpdate(
+    { _id, board_name },
+    {
+      bumped_on: Date.now(),
+      $push: { replies: { text, delete_password } },
+      $inc: { reply_count: 1 },
+    },
+    {
+      new: true,
+      fields: desiredFieldsToRemove,
+    },
+  )
+    .then((threadDocument) => {
+      if (!threadDocument) {
+        return res.json({
+          error: `Thread ${_id} on Board ${board_name} not found`,
+        });
+      }
+      res.locals.threadDocument = threadDocument;
+      return next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.addReplyToThreadByID when trying to add Reply to Thread: ${err.message}`,
       );
     });
 };
