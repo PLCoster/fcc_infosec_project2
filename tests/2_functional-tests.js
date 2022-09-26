@@ -32,6 +32,7 @@ const sampleThreads = new Array(10).fill({}).map((el, i) => {
 
 // To hold a created Thread object for access in later tests
 let sampleThread;
+let sampleThreadPassword;
 let threadToDelete;
 
 suite('Functional Tests', function () {
@@ -135,7 +136,7 @@ suite('Functional Tests', function () {
 
             // Store this Thread Document for access in future tests
             sampleThread = res.body;
-            sampleThread.delete_password = body.delete_password;
+            sampleThreadPassword = body.delete_password;
             done();
           })
           .catch((err) => done(err));
@@ -505,7 +506,7 @@ suite('Functional Tests', function () {
       test('DELETE /api/threads/{board} with a valid thread_id and password but wrong board name does not delete thread', function (done) {
         const body = {
           thread_id: sampleThread._id,
-          delete_password: sampleThread.delete_password,
+          delete_password: sampleThreadPassword,
         };
 
         const board_name = 'wrongboardname';
@@ -586,6 +587,66 @@ suite('Functional Tests', function () {
               'Response should be "thread not found", error object',
             );
 
+            done();
+          })
+          .catch((err) => done(err));
+      });
+    });
+
+    suite('/api/replies/{board} => CRUD Replies on {board}', function () {
+      test('GET /api/replies/{board}?thread_id={thread_id} with valid board and thread_id returns a Thread and all its Replies', function (done) {
+        const { board_name, _id } = sampleThread;
+
+        chai
+          .request(server)
+          .get(`/api/replies/${board_name}?thread_id=${_id}`)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.isObject(
+              res.body,
+              'Response body should be a Thread Document object',
+            );
+            assert.deepInclude(
+              res.body,
+              sampleThread,
+              'Response body should be the desired Thread',
+            );
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('GET /api/replies/{board}?thread_id={thread_id} with a non-existent Thread returns a "thread not found" error object', function (done) {
+        const { board_name, _id } = {
+          board_name: 'nonExistentBoard',
+          _id: sampleThread._id,
+        };
+
+        const expectedResponse = {
+          error: `Thread ${_id} on Board ${board_name} not found`,
+        };
+
+        chai
+          .request(server)
+          .get(`/api/replies/${board_name}?thread_id=${_id}`)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response body should be an error object with "thread not found" message',
+            );
             done();
           })
           .catch((err) => done(err));

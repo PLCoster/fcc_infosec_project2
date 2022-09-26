@@ -1,6 +1,5 @@
 'use strict';
 
-const threadController = require('../controllers/threadcontroller');
 const {
   validateBoardName,
   validateThreadAndReplyIDs,
@@ -8,7 +7,8 @@ const {
   getTenMostRecentThreads,
   reportThreadByID,
   deleteThreadByID,
-  getFullThreadInfoByID,
+  getThreadByID,
+  _getFullThreadInfoByID,
 } = require('../controllers/threadcontroller');
 
 module.exports = function (app) {
@@ -50,11 +50,15 @@ module.exports = function (app) {
   app
     .route('/api/replies/:board')
 
-    // GET request to /api/replies/:board returns Thread and Replies
-    .get(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    })
+    // GET request to /api/replies/:board?thread_id={thread_id} returns Thread and all Replies
+    .get(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      getThreadByID,
+      (req, res) => {
+        return res.json(res.locals.threadDocument);
+      },
+    )
 
     // POST request to /api/replies/:board creates Reply on Thread
     .post(validateBoardName, (req, res) => {
@@ -79,7 +83,7 @@ module.exports = function (app) {
   if (process.env.NODE_ENV === 'test') {
     app
       .route('/api/thread_info/:_id')
-      .get(getFullThreadInfoByID, (req, res) => {
+      .get(_getFullThreadInfoByID, (req, res) => {
         return res.json(res.locals.threadDocument);
       });
   }

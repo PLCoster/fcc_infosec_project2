@@ -21,7 +21,12 @@ threadController.validateBoardName = (req, res, next) => {
 // Valid Thread and Reply _id are 24 alphanumeric characters
 // If validated, ObjectIds are placed on res.locals
 threadController.validateThreadAndReplyIDs = (req, res, next) => {
-  const { thread_id, reply_id } = req.body;
+  let { thread_id, reply_id } = req.body;
+
+  // If thread_id is not on body, see if it is in query params (GET)
+  if (!thread_id) {
+    thread_id = req.query.thread_id;
+  }
 
   if (!thread_id) {
     return res.json({
@@ -218,8 +223,32 @@ threadController.deleteThreadByID = (req, res, next) => {
     });
 };
 
+// Middleware to get Thread and all its Replies by ID
+// Requires threadController.validateThreadAndReplyIDs to be called first
+threadController.getThreadByID = (req, res, next) => {
+  const { thread_id: _id } = res.locals;
+  const { board: board_name } = req.params;
+
+  Thread.findOne({ _id, board_name })
+    .then((threadDocument) => {
+      if (!threadDocument) {
+        return res.json({
+          error: `Thread ${_id} on Board ${board_name} not found`,
+        });
+      }
+
+      res.locals.threadDocument = threadDocument;
+      return next();
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.getThreadByID when trying to find a Thread: ${err.message}`,
+      );
+    });
+};
+
 // Middleware used during Testing only - Returns all fields of Thread by ID
-threadController.getFullThreadInfoByID = (req, res, next) => {
+threadController._getFullThreadInfoByID = (req, res, next) => {
   const { _id } = req.params;
 
   Thread.findOne({ _id })
