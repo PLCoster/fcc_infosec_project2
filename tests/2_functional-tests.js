@@ -887,6 +887,142 @@ suite('Functional Tests', function () {
           })
           .catch((err) => done(err));
       });
+
+      test('DELETE /api/replies/{board} with valid reply_id, thread_id and board but invalid password does not delete the Reply', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+        const { _id: reply_id } = sampleThread.replies[0];
+        const delete_password = 'wrongpassword';
+
+        const body = { thread_id, reply_id, delete_password };
+
+        const expectedResponse = 'incorrect password';
+
+        chai
+          .request(server)
+          .delete(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response body should be "incorrect password" string to indicate that Reply password was incorrect',
+            );
+
+            // Check that reply has not been deleted
+            return chai.request(server).get(`/api/thread_info/${thread_id}`);
+          })
+          .then((threadInfoRes) => {
+            assert.equal(
+              threadInfoRes.status,
+              200,
+              'Response status should be 200',
+            );
+            assert.equal(
+              threadInfoRes.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(threadInfoRes.body.replies[0]._id, reply_id);
+            assert.equal(
+              threadInfoRes.body.replies[0].text,
+              sampleThread.replies[0].text,
+              'Reply text on thread should be unchanged when deletion fails',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('DELETE /api/replies/{board} with valid reply_id, thread_id, delete_password and board deletes the reply', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+        const { _id: reply_id } = sampleThread.replies[0];
+        const delete_password = sampleReplyPassword;
+
+        const body = { thread_id, reply_id, delete_password };
+
+        const expectedResponse = 'success';
+
+        chai
+          .request(server)
+          .delete(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200');
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(
+              res.body,
+              expectedResponse,
+              'Response body should be "success" string to indicate successful deletion of Reply',
+            );
+
+            // Check that reply has been deleted correctly
+            return chai.request(server).get(`/api/thread_info/${thread_id}`);
+          })
+          .then((threadInfoRes) => {
+            assert.equal(
+              threadInfoRes.status,
+              200,
+              'Response status should be 200',
+            );
+            assert.equal(
+              threadInfoRes.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.equal(threadInfoRes.body.replies[0]._id, reply_id);
+            assert.equal(
+              threadInfoRes.body.replies[0].text,
+              '[deleted]',
+              'Reply text on thread should be "[deleted]" after successful deletion',
+            );
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('DELETE /api/replies/{board} with non-existent reply returns "reply not found" error', function (done) {
+        const { board_name, _id: thread_id } = sampleThread;
+        // Reply _id cannot be same as thread_id - reply does not exist
+        const reply_id = thread_id;
+        const delete_password = sampleReplyPassword;
+
+        const body = { thread_id, reply_id, delete_password };
+
+        const expectedResponse = {
+          error: `Reply ${reply_id} on Thread ${thread_id} on Board ${board_name} not found`,
+        };
+
+        chai
+          .request(server)
+          .delete(`/api/replies/${board_name}`)
+          .send(body)
+          .then((res) => {
+            assert.equal(res.status, 200, 'Response status should be 200'); // !!!
+            assert.equal(
+              res.type,
+              'application/json',
+              'Response type should be application/json',
+            );
+            assert.deepEqual(
+              res.body,
+              expectedResponse,
+              'Response body should be error JSON with "reply not found" message',
+            );
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
     });
   });
 });

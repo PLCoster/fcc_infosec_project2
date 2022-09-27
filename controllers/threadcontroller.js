@@ -290,7 +290,6 @@ threadController.addReplyToThreadByID = (req, res, next) => {
 
 // Middleware to report a Reply on a Thread by reply_id, thread_id and board
 // Requires threadController.validateThreadAndReplyIDs to be called first
-// https://stackoverflow.com/questions/26156687/mongoose-find-update-subdocument
 threadController.reportReplyByID = (req, res, next) => {
   const { thread_id: _id, reply_id } = res.locals;
   const { board: board_name } = req.params;
@@ -303,6 +302,7 @@ threadController.reportReplyByID = (req, res, next) => {
     });
   }
 
+  // https://stackoverflow.com/questions/26156687/mongoose-find-update-subdocument
   Thread.findOneAndUpdate(
     { _id, board_name, 'replies._id': reply_id },
     { 'replies.$.reported': true },
@@ -322,6 +322,61 @@ threadController.reportReplyByID = (req, res, next) => {
     .catch((err) => {
       return next(
         `Error in threadController.reportReplyByID when trying to update Reply in Thread: ${err.message}`,
+      );
+    });
+};
+
+// Middleware to delete text of Reply by its ID
+// Requires threadController.validateThreadAndReplyIDs to be called first
+threadController.deleteReplyByID = (req, res, next) => {
+  const { thread_id: _id, reply_id } = res.locals;
+  const { board: board_name } = req.params;
+  const { delete_password } = req.body;
+
+  if (!_id || !reply_id || !board_name) {
+    return res.json({
+      // !!! non-200 error code?
+      error:
+        'Missing required fields to delete a Reply - Require non-empty "thread_id" and "reply_id" body fields and non-empty "board" URL parameter',
+    });
+  }
+
+  // Find Reply Document in specified Thread
+  Thread.findOne({ _id, board_name, 'replies._id': reply_id })
+    .then((threadDocument) => {
+      if (!threadDocument) {
+        return res.json({
+          // !!! Non-200 error code?
+          error: `Reply ${reply_id} on Thread ${_id} on Board ${board_name} not found`,
+        });
+      }
+
+      if (threadDocument.replies[0].delete_password !== delete_password) {
+        return res.json('incorrect password');
+      }
+
+      // Otherwise Reply exists on Thread - delete Reply
+      Thread.findOneAndUpdate(
+        { _id, board_name, 'replies._id': reply_id },
+        { 'replies.$.text': '[deleted]' },
+        {
+          new: true,
+        },
+      ).then((updatedDocument) => {
+        // In case of thread deletion between initial check and reply deletion
+        if (!updatedDocument) {
+          return res.json({
+            // !!! Non-200 error code?
+            error: `Reply ${reply_id} on Thread ${_id} on Board ${board_name} not found`,
+          });
+        }
+
+        return next();
+      });
+    })
+    .catch((err) => {
+      return next(
+        `Error in threadController.deleteReplyByID when trying to delete Reply in Thread: ${err.message}`,
       );
     });
 };

@@ -10,6 +10,7 @@ const {
   getThreadByID,
   addReplyToThreadByID,
   reportReplyByID,
+  deleteReplyByID,
   _getFullThreadInfoByID,
 } = require('../controllers/threadcontroller');
 
@@ -83,10 +84,14 @@ module.exports = function (app) {
     )
 
     // DELETE request to /api/replies/:board deletes a Reply
-    .delete(validateBoardName, (req, res) => {
-      // !!!
-      return res.json('TO DO!');
-    });
+    .delete(
+      validateBoardName,
+      validateThreadAndReplyIDs,
+      deleteReplyByID,
+      (req, res) => {
+        return res.json('success');
+      },
+    );
 
   // Testing only route to get full thread information
   if (process.env.NODE_ENV === 'test') {
