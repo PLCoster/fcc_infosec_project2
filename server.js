@@ -6,6 +6,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const apiRoutes = require('./routes/api.js');
 const fccTestingRoutes = require('./routes/fcctesting.js');
@@ -22,6 +23,17 @@ if (process.env.RUN_MODE === 'development') {
     next();
   });
 }
+
+// Helmet settings for FCC Tests:
+// Prevent iFrame loading except on own site:
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+// Do not allow DNS prefetching
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control
+app.use(helmet.dnsPrefetchControl());
+// Only allow site to send the referrer for your own pages
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
 
 // Serve static files from 'public' folder
 // http://expressjs.com/en/starter/static-files.html
