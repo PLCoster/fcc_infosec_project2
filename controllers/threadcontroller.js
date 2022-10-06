@@ -6,6 +6,7 @@ const desiredFieldsToRemove = {
   delete_password: 0,
   __v: 0,
   reported: 0,
+  expire_after_seconds: 0,
   'replies.delete_password': 0,
   'replies.expire_after_seconds': 0,
   'replies.reported': 0,
