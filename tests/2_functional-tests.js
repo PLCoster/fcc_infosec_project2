@@ -651,7 +651,7 @@ suite('Functional Tests', function () {
           .catch((err) => done(err));
       });
 
-      test('POST /api/replies/{board} with valid board, thread_id, text and delete_password fields returns adds a Reply to a Thread', function (done) {
+      test('POST /api/replies/{board} with valid board, thread_id, text and delete_password fields adds a Reply to a Thread, updates Thread bumped_on date', function (done) {
         const { board_name, _id: thread_id } = sampleThread;
 
         const text = 'Example of a Reply';
@@ -693,8 +693,8 @@ suite('Functional Tests', function () {
               'Reply Array should contain a single Reply Document',
             );
             assert.isTrue(
-              new Date(sampleThread.bumped_on) < new Date(res.body.bumped_on),
-              'Adding a reply should update the "bumped_on" field of Thread to current time',
+              res.body.bumped_on === res.body.replies[0].created_on,
+              'Adding a reply should update the "bumped_on" field of Thread to the created_on time of the reply',
             );
 
             const reply = res.body.replies[0];

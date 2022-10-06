@@ -260,11 +260,12 @@ threadController.addReplyToThreadByID = (req, res, next) => {
   }
 
   // Otherwise add reply to Thread, return Thread with new reply
+  const created_on = Date.now(); // bumped_on of Thread and created_on of Reply
   Thread.findOneAndUpdate(
     { _id, board_name },
     {
-      bumped_on: Date.now(),
-      $push: { replies: { text, delete_password } },
+      bumped_on: created_on,
+      $push: { replies: { text, delete_password, created_on } },
       $inc: { reply_count: 1 },
     },
     {
