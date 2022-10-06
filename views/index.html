@@ -2,147 +2,497 @@
 <html>
   <head>
     <title>Anonymous Message Board</title>
-    <meta name="description" content="freeCodeCamp project boilerplate">
-    <link id="favicon" rel="icon" href="https://cdn.freecodecamp.org/universal/favicons/favicon-32x32.png" type="image/x-icon">
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./public/style.css">
+    <meta
+      name="description"
+      content="An example of the Free Code Camp Anonymous Message Board Project"
+    />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- FAVICONS -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/public/favicons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/public/favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/public/favicons/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/public/site.webmanifest" />
+
+    <!-- STYLES -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+      integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/public/style.css" />
   </head>
   <body>
-    <header>
-      <h1>
-        IS_2 - Anonymous Message Board
-      </h1>
-    </header>
-    <h2>
-      <a href="/b/general/">
-        Go to testing 
-        <i>'/b/general/'</i>
-         board
-      </a>
-    </h2>
-    <div id='testui' style='margin-left: 5%'>
-      <h2 style="text-align: left">API Tests:</h2>
-        <h4>New thread (POST /api/threads/:board)</h4>
-        <form action="/api/threads/test" method="post" id="newThread">
-          <input type='text' placeholder='board' id='board1' name='board' required=''><br>
-          <textarea type='text' placeholder='Thread text...' name='text' required=''></textarea><br>
-          <input type='text' placeholder='password to delete' name='delete_password' required=''><br>
-          <input type="submit" value="Submit">
-        </form>
-        <hr>
-        <h4>Report thread (PUT /api/threads/:board)</h4>
-        <form id="reportThread">
-          <input type='text' placeholder='board' id='board2' name='board' required=''><br>
-          <input type='text' placeholder='id to report' name='thread_id' required=''><br>
-          <input type="submit" value="Submit">
-        </form>
-        <hr>
-        <h4>Delete thread (DELETE /api/threads/:board)</h4>
-        <form id="deleteThread">
-          <input type='text' placeholder='board' id='board3' name='board' required=''><br>
-          <input type='text' placeholder='id to delete' name='thread_id' required=''><br>
-          <input type='text' placeholder='password' name='delete_password' required=''><br>
-          <input type="submit" value="Submit">
-        </form>
-        <hr>
-        
-        
-        <h4>New reply (POST /api/replies/:board)</h4>
-        <form action="/api/replies/test" method="post" id="newReply">
-          <input type='text' placeholder='board' id='board4' name='board' required=''><br>
-          <input type='text' placeholder='thread id' name='thread_id' required=''><br>
-          <textarea type='text' placeholder='Thread text...' name='text' required=''></textarea><br>
-          <input type='text' placeholder='password to delete' name='delete_password' required=''><br>
-          <input type="submit" value="Submit">
-        </form>
-        <hr>
-        <h4>Report reply (PUT /api/replies/:board)</h4>
-        <form id="reportReply">
-          <input type='text' placeholder='board' id='board5' name='board' required=''><br>
-          <input type='text' placeholder='thread id' name='thread_id' required=''><br>
-          <input type='text' placeholder='id to report' name='reply_id' required=''><br>
-          <input type="submit" value="Submit">
-        </form>
-        <hr>
-        <h4>Delete reply (DELETE /api/replies/:board)</h4>
-        <form id="deleteReply">
-          <input type='text' placeholder='board' id='board6' name='board' required=''><br>
-          <input type='text' placeholder='thread id' name='thread_id' required=''><br>
-          <input type='text' placeholder='id to delete' name='reply_id' required=''><br>
-          <input type='text' placeholder='password' name='delete_password' required=''><br>
-          <input type="submit" value="Submit">
-        </form>        
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href=".">Stock Price Checker</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                href="https://plcoster.github.io/homepage/"
+              >
+                Home
+              </a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="navbarDropdownMenuLink"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                FreeCodeCamp InfoSec Projects
+              </a>
+              <ul
+                class="dropdown-menu"
+                aria-labelledby="navbarDropdownMenuLink"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="https://fcc-infosec-project1.plcoster.repl.co"
+                  >
+                    Stock Price Checker
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="https://fcc-infosec-project2.plcoster.repl.co"
+                  >
+                    Anonymous Message Board
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="https://replit.com/@PLCoster/fcc-infosec-project3"
+                  >
+                    Port Scanner
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="https://replit.com/@PLCoster/fcc-infosec-project4"
+                  >
+                    SHA-1 Password Cracker
+                  </a>
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="https://fcc-infosec-project5.plcoster.repl.co"
+                  >
+                    Secure Real Time Multiplayer Game
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                href="https://plcoster.github.io/homepage/projects.html"
+              >
+                All Projects
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/PLCoster">
+                <i class="fab fa-github"></i> Github
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="https://linkedin.com/in/plcoster">
+                <i class="fab fa-linkedin"></i>
+                LinkedIn
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <main>
+        <header>
+          <h1>
+            <img
+              class="logo"
+              src="/public/logo.png"
+              alt="White icon of a message bubble on a red square background"
+            />
+            Anonymous Message Board
+          </h1>
+        </header>
+
+        <hr />
+
+        <div id="api-container" class="d-flex flex-column align-items-center">
+          <p>
+            Test the Message Board API using the forms below, or visit a board
+            directly by visiting <code>/b/&lt;BOARD&gt;</code>, for example
+            <a href="/b/general">/b/general</a>
+          </p>
+          <p class="note">
+            <strong>NOTE:</strong> This is a demo application. All Threads and
+            Replies are viewable by any other user. Threads (and any Replies)
+            are deleted 24 hours after creation.
+          </p>
+          <!-- THREAD API UI -->
+          <section
+            id="thread-api-ui"
+            class="d-flex flex-row justify-content-center flex-wrap"
+          >
+            <form action="/api/threads/test" method="post" id="newThread">
+              <h4>Create a Thread</h4>
+              <p>
+                <code>POST /api/threads/&lt;BOARD&gt;</code>
+              </p>
+              <input
+                type="text"
+                placeholder="Board Name"
+                id="board1"
+                class="form-control form-control-sm"
+                name="board"
+                required=""
+              />
+              <textarea
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread text..."
+                name="text"
+                required=""
+              ></textarea>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Password to Delete Thread"
+                name="delete_password"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+
+            <form id="reportThread">
+              <h4>Report Thread</h4>
+              <p><code>PUT /api/threads/&lt;BOARD&gt;</code></p>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Board Name"
+                id="board2"
+                name="board"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread id to Report"
+                name="thread_id"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+
+            <form id="deleteThread">
+              <h4>Delete Thread</h4>
+              <p><code>DELETE /api/threads/&lt;BOARD&gt;</code></p>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Board Name"
+                id="board3"
+                name="board"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread id to Delete"
+                name="thread_id"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread Deletion Password"
+                name="delete_password"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+          </section>
+
+          <!-- REPLY API UI -->
+          <section
+            id="reply-api-ui"
+            class="d-flex flex-row justify-content-center flex-wrap"
+          >
+            <form action="/api/replies/test" method="post" id="newReply">
+              <h4>Create Reply</h4>
+              <p><code>POST /api/replies/&lt;BOARD&gt;</code></p>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Board Name"
+                id="board4"
+                name="board"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread id for Reply"
+                name="thread_id"
+                required=""
+              />
+              <textarea
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread text..."
+                name="text"
+                required=""
+              ></textarea>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Password to Delete Reply"
+                name="delete_password"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+
+            <form id="reportReply">
+              <h4>Report Reply</h4>
+              <p><code>PUT /api/replies/&lt;BOARD&gt;</code></p>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Board Name"
+                id="board5"
+                name="board"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread id of Reply"
+                name="thread_id"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Reply id to Report"
+                name="reply_id"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+
+            <form id="deleteReply">
+              <h4>Delete Reply</h4>
+              <p><code>DELETE /api/replies/&lt;BOARD&gt;</code></p>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Board Name"
+                id="board6"
+                name="board"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Thread id of Reply"
+                name="thread_id"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Reply id to Delete"
+                name="reply_id"
+                required=""
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Reply Deletion Password"
+                name="delete_password"
+                required=""
+              />
+              <input
+                class="btn btn-sm btn-danger"
+                type="submit"
+                value="Submit"
+              />
+            </form>
+          </section>
+        </div>
+
+        <hr />
+
+        <section id="userstories">
+          <h3>Example Usage:</h3>
+          !!!
+        </section>
+      </main>
+      <hr />
+
+      <footer>
+        <p>
+          A project set by
+          <a href="https://www.freecodecamp.org/">freeCodeCamp</a>
+        </p>
+      </footer>
     </div>
-    <hr style='margin: 50px; margin-top: 200px'>
+
+    <!-- Bootstrap, JQuery Scripts -->
     <!-- Your web-app is https, so your scripts need to be too -->
-    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
-            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
-            crossorigin="anonymous"></script>
+    <script
+      src="https://code.jquery.com/jquery-2.2.1.min.js"
+      integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- CUSTOM JS FOR FORM SUBMISSION -->
     <script>
-      $(function() {
-        $('#newThread').submit(function(){
+      $(function () {
+        // POST /api/threads/:board
+        $('#newThread').submit(function () {
           var board = $('#board1').val();
-          $(this).attr('action', "/api/threads/" + board);
+          $(this).attr('action', '/api/threads/' + board);
         });
-        $('#newReply').submit(function(){
+
+        // POST /api/replies/:board
+        $('#newReply').submit(function () {
           var board = $('#board4').val();
-          $(this).attr('action', "/api/replies/" + board);
+          $(this).attr('action', '/api/replies/' + board);
         });
-        $('#reportThread').submit(function(e){
-          var url = "/api/threads/"+$('#board2').val();
+
+        // PUT /api/threads/:board
+        $('#reportThread').submit(function (e) {
+          var url = '/api/threads/' + $('#board2').val();
           $.ajax({
-            type: "PUT",
+            type: 'PUT',
             url: url,
             data: $(this).serialize(),
-            success: function(data)
-            {
+            success: function (data) {
               alert(data);
-            }
+            },
           });
           e.preventDefault();
         });
-        $('#deleteThread').submit(function(e){
-          var url = "/api/threads/"+$('#board3').val();
+
+        // DELETE /api/threads/:board
+        $('#deleteThread').submit(function (e) {
+          var url = '/api/threads/' + $('#board3').val();
           $.ajax({
-            type: "DELETE",
+            type: 'DELETE',
             url: url,
             data: $(this).serialize(),
-            success: function(data)
-            {
+            success: function (data) {
               alert(data);
-            }
+            },
           });
           e.preventDefault();
         });
-        $('#reportReply').submit(function(e){
-          var url = "/api/replies/"+$('#board5').val();
+
+        // PUT /api/replies/:board
+        $('#reportReply').submit(function (e) {
+          var url = '/api/replies/' + $('#board5').val();
           $.ajax({
-            type: "PUT",
+            type: 'PUT',
             url: url,
             data: $(this).serialize(),
-            success: function(data)
-            {
+            success: function (data) {
               alert(data);
-            }
+            },
           });
           e.preventDefault();
         });
-        $('#deleteReply').submit(function(e){
-          var url = "/api/replies/"+$('#board6').val();
+
+        // DELETE /api/replies/:board
+        $('#deleteReply').submit(function (e) {
+          var url = '/api/replies/' + $('#board6').val();
           $.ajax({
-            type: "DELETE",
+            type: 'DELETE',
             url: url,
             data: $(this).serialize(),
-            success: function(data)
-            {
+            success: function (data) {
               alert(data);
-            }
+            },
           });
           e.preventDefault();
         });
       });
-   </script>
+    </script>
   </body>
 </html>
