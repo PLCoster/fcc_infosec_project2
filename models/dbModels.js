@@ -41,6 +41,7 @@ const threadSchema = new mongoose.Schema({
   bumped_on: Date,
   replies: { type: [replySchema], default: [] },
   reply_count: { type: Number, default: 0 },
+  expire_after_seconds: { type: Date, default: Date.now, expires: 86400 },
 });
 
 const Reply = mongoose.model('replies', replySchema);
