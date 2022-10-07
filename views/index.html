@@ -184,7 +184,7 @@
             class="d-flex flex-row justify-content-center flex-wrap"
           >
             <form action="/api/threads/test" method="post" id="newThread">
-              <h4>Create a Thread</h4>
+              <h4>Create Thread</h4>
               <p>
                 <code>POST /api/threads/&lt;BOARD&gt;</code>
               </p>
@@ -301,7 +301,7 @@
               <textarea
                 type="text"
                 class="form-control form-control-sm"
-                placeholder="Thread text..."
+                placeholder="Reply text..."
                 name="text"
                 required=""
               ></textarea>
@@ -396,6 +396,180 @@
 
         <section id="userstories">
           <h3>Example Usage:</h3>
+          <h5>To Get the 10 Most Recent Threads on a Board:</h5>
+          <ul class="usage-list">
+            <li>
+              Send a GET request to
+              <code>/api/threads/&lt;BOARD&gt;</code> where &lt;BOARD&gt; is the
+              name of the board you wish to view.
+            </li>
+            <br />
+            <strong>For Example:</strong>
+            <ul>
+              <li>
+                Get 10 most recent Threads (each with the 3 most recent replies)
+                on the 'general' board:
+                <code
+                  ><a href="/api/threads/general">/api/threads/general</a></code
+                >
+              </li>
+            </ul>
+          </ul>
+
+          <h5>To Get a Single Thread and All its Replies:</h5>
+          <ul class="usage-list">
+            <li>
+              GET request to /api/replies/:board?thread_id={thread_id} Send a
+              GET request to
+              <code
+                >/api/threads/&lt;BOARD&gt;?thread_id=&lt;THREAD_ID&gt;</code
+              >
+              where &lt;BOARD&gt; is the name of the board containing the Thread
+              you wish to view and &lt;THREAD_ID&gt; is the id of the Thread.
+            </li>
+            <br />
+            <strong>For Example:</strong>
+            <ul>
+              <li>
+                Get the full Thread with ID '123' on the 'general' board:
+                <code
+                  ><a href="/api/threads/general?thread_id=123"
+                    >/api/threads/general?thread_id=123</a
+                  ></code
+                >
+              </li>
+            </ul>
+          </ul>
+
+          <h5>To Create a New Thread:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Create Thread' form above with a valid board name (can
+              only contain characters [a-zA-Z0-9]), desired text for the thread
+              and the password to be used to delete the thread.
+            </li>
+            <li>
+              Alternatively, send a POST request to
+              <code>/api/threads/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board you wish to post on, with a body containing
+              url or JSON encoded fields of <code>text</code> (thread text) and
+              <code>delete_password</code> (password to delete the created
+              thread).
+            </li>
+          </ul>
+
+          <h5>To Report a Thread:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Report Thread' form above with the Board Name and
+              Thread id of the Thread to be reported.
+            </li>
+            <li>
+              Alternatively, send a PUT request to
+              <code>/api/threads/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board the Thread is on, with a body containing a
+              url or JSON encoded field of <code>thread_id</code> (id of thread
+              to report).
+            </li>
+            <ul>
+              <li>
+                If the Thread is successfully reported, a JSON string of
+                'reported' is returned. Otherwise a JSON object with an 'error'
+                property will be returned with information regarding the
+                problem.
+              </li>
+            </ul>
+          </ul>
+
+          <h5>To Delete a Thread:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Delete Thread' form above with the Board Name, Thread
+              id, and deletion password of the Thread to be deleted.
+            </li>
+            <li>
+              Alternatively, send a DELETE request to
+              <code>/api/threads/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board the Thread is on, with a body containing url
+              or JSON encoded fields of <code>thread_id</code> (id of thread to
+              delete) and <code>delete_password</code> (password of the thread
+              to be deleted).
+            </li>
+            <ul>
+              <li>
+                If the Thread is successfully deleted, a JSON string of
+                'success' is returned. Otherwise a JSON object with an 'error'
+                property will be returned with information regarding the
+                problem.
+              </li>
+            </ul>
+          </ul>
+
+          <h5>To Add a Reply to a Thread:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Create Reply' form above with a the board name, id of
+              the Thread to add the Reply to, desired text for the Reply and the
+              password to be used to delete the Reply.
+            </li>
+            <li>
+              Alternatively, send a POST request to
+              <code>/api/replies/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board the parent Thread is on, with a body
+              containing url or JSON encoded fields of <code>thread_id</code>,
+              <code>text</code> (reply text) and
+              <code>delete_password</code> (password to delete the created
+              reply).
+            </li>
+          </ul>
+
+          <h5>To Report a Reply:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Report Reply' form above with the Board Name, Thread
+              id and Reply id of the Reply to be reported.
+            </li>
+            <li>
+              Alternatively, send a PUT request to
+              <code>/api/replies/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board the parent Thread is on, with a body
+              containing a url or JSON encoded fields of
+              <code>thread_id</code> and <code>reply_id</code>.
+              <ul>
+                <li>
+                  If the Reply is successfully reported, a JSON string of
+                  'reported' is returned. Otherwise a JSON object with an
+                  'error' property will be returned with information regarding
+                  the problem.
+                </li>
+              </ul>
+            </li>
+          </ul>
+
+          <h5>To Delete a Thread:</h5>
+          <ul class="usage-list">
+            <li>
+              Submit the 'Delete Reply' form above with the Board Name, Thread
+              id, Reply id, and deletion password of the Reply to be deleted.
+            </li>
+            <li>
+              Alternatively, send a DELETE request to
+              <code>/api/replies/&lt;BOARD&gt;</code>, where &lt;BOARD&gt; is
+              the name of the board the parent Thread is on, with a body
+              containing url or JSON encoded fields of <code>thread_id</code>,
+              <code>reply_id</code> and <code>delete_password</code> (password
+              of the thread to be deleted).
+            </li>
+            <ul>
+              <li>
+                If the Reply is successfully deleted, a JSON string of 'success'
+                is returned. Otherwise a JSON object with an 'error' property
+                will be returned with information regarding the problem.
+              </li>
+            </ul>
+          </ul>
+
+          <h3>Example Output:</h3>
           !!!
         </section>
       </main>
