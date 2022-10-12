@@ -419,10 +419,9 @@
           <h5>To Get a Single Thread and All its Replies:</h5>
           <ul class="usage-list">
             <li>
-              GET request to /api/replies/:board?thread_id={thread_id} Send a
-              GET request to
+              Send a GET request to
               <code
-                >/api/threads/&lt;BOARD&gt;?thread_id=&lt;THREAD_ID&gt;</code
+                >/api/replies/&lt;BOARD&gt;?thread_id=&lt;THREAD_ID&gt;</code
               >
               where &lt;BOARD&gt; is the name of the board containing the Thread
               you wish to view and &lt;THREAD_ID&gt; is the id of the Thread.
@@ -433,8 +432,8 @@
               <li>
                 Get the full Thread with ID '123' on the 'general' board:
                 <code
-                  ><a href="/api/threads/general?thread_id=123"
-                    >/api/threads/general?thread_id=123</a
+                  ><a href="/api/replies/general?thread_id=123"
+                    >/api/replies/general?thread_id=123</a
                   ></code
                 >
               </li>
@@ -570,7 +569,73 @@
           </ul>
 
           <h3>Example Output:</h3>
-          !!!
+          <p>
+            On requesting the 10 most recent threads on a board -
+            <code>GET /api/threads/&lt;BOARD&gt;</code> - a JSON array
+            containing up to 10 Thread objects, each with their most recent 3
+            replies is returned:
+          </p>
+
+          <code class="block">
+            [
+            <ul class="indent">
+              {
+              <li>"_id": "63470c04f8e0923d8b562b58",</li>
+              <li>"board_name": "general",</li>
+              <li>"text": "Thread 1",</li>
+              <li>"created_on": "2022-10-12T18:48:36.954Z",</li>
+              <li>"bumped_on": "2022-10-12T18:49:07.193Z",</li>
+              <li>"reply_count": 10,</li>
+              <li>"replies": [</li>
+              <ul class="indent">
+                {
+                <li>"_id": "63470c1af8e0923d8b562b5b",</li>
+                <li>"text": "Reply 8",</li>
+                <li>"created_on": "2022-10-12T18:48:58.991Z",</li>
+                },
+              </ul>
+              <ul class="indent">
+                {
+                <li>"_id": "63470c1ff8e0923d8b562b5e",</li>
+                <li>"text": "Reply 9",</li>
+                <li>"created_on": "2022-10-12T18:49:03.232Z",</li>
+                },
+              </ul>
+              <ul class="indent">
+                {
+                <li>"_id": "63470c23f8e0923d8b562b62",</li>
+                <li>"text": "Reply 10",</li>
+                <li>"created_on": "2022-10-12T18:49:07.193Z",</li>
+                }]
+              </ul>
+              }, (...up to 9 more thread objects)
+            </ul>
+            ]
+          </code>
+
+          <p>
+            On posting a new Thread, or adding a reply to an existing Thread,
+            the new Thread object or updated Thread object with added reply are
+            returned, respectively.
+          </p>
+
+          <p>
+            On successfully reporting a Thread or Reply, the returned response
+            will have a body consisting of the string
+            <code>"reported"</code>.
+          </p>
+
+          <p>
+            On successfully deleting a Thread or Reply, the returned response
+            will have a body consisting of the string
+            <code>"success"</code>.
+          </p>
+
+          <p>
+            If any operation is not successful, the response will contain a JSON
+            object with an <code>error</code> property, and corresponding value
+            explaining the problem that occurred.
+          </p>
         </section>
       </main>
       <hr />
