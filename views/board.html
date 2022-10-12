@@ -2,160 +2,345 @@
 <html>
   <head>
     <title>Anonymous Message Board</title>
-    <meta name="description" content="freeCodeCamp project boilerplate" />
-    <link
-      id="favicon"
-      rel="icon"
-      href="https://cdn.freecodecamp.org/universal/favicons/favicon-32x32.png"
-      type="image/x-icon"
+    <meta
+      name="description"
+      content="An example of the Free Code Camp Anonymous Message Board Project"
     />
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- FAVICONS -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/public/favicons/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/public/favicons/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/public/favicons/favicon-16x16.png"
+    />
+    <link rel="manifest" href="/public/site.webmanifest" />
+
+    <!-- STYLES -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"
+      integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm"
+      crossorigin="anonymous"
+    />
     <link rel="stylesheet" href="/public/style.css" />
   </head>
   <body>
-    <header>
-      <h1 id="boardTitle"></h1>
-    </header>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand board-title" href="#">Anonymous Message Board</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link active" href="."> Message Board Home </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
-    <div id="submitNewThread">
-      <h3>Submit a new thread:</h3>
-      <form id="newThread" method="post" action="/api/">
-        <textarea
-          rows="8"
-          cols="120"
-          type="text"
-          placeholder="Thread text..."
-          name="text"
-          required=""
-        ></textarea
-        ><br />
-        <input
-          type="text"
-          placeholder="password to delete"
-          name="delete_password"
-          required=""
-        /><br />
-        <input type="submit" value="Submit" />
-      </form>
+    <div class="container">
+      <main>
+        <header>
+          <h1>
+            <img
+              class="logo"
+              src="/public/logo.png"
+              alt="White icon of a message bubble on a red square background"
+            />
+            Welcome to <span class="board-title"></span>
+          </h1>
+        </header>
+
+        <hr />
+
+        <section id="submitNewThread">
+          <h3>Submit a new thread:</h3>
+          <form id="newThread" method="post" action="/api/">
+            <textarea
+              class="form-control form-control-sm"
+              rows="4"
+              type="text"
+              placeholder="Thread text..."
+              name="text"
+              required=""
+            ></textarea>
+            <input
+              class="form-control form-control-sm"
+              type="text"
+              placeholder="password to delete"
+              name="delete_password"
+              required=""
+            />
+            <input class="btn btn-sm btn-info" type="submit" value="Submit" />
+          </form>
+        </section>
+
+        <hr />
+
+        <section id="board-threads">
+          <h3>Most Recent Threads:</h3>
+          <!-- Thread posts go here -->
+          <section id="boardDisplay"></section>
+        </section>
+      </main>
+      <hr />
+
+      <footer>
+        <p>
+          A project set by
+          <a href="https://www.freecodecamp.org/">freeCodeCamp</a>
+        </p>
+      </footer>
     </div>
 
-    <div id="boardDisplay"></div>
-
-    <hr style="margin: 50px; margin-top: 200px" />
-
+    <!-- Bootstrap, JQuery Scripts -->
+    <!-- Your web-app is https, so your scripts need to be too -->
     <script
       src="https://code.jquery.com/jquery-2.2.1.min.js"
       integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
       crossorigin="anonymous"
     ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+
     <script>
       $(function () {
+        // Update the board title based on window URL:
         var currentBoard = window.location.pathname.slice(3).replace('/', '');
         console.log('currentBoard is: ', currentBoard);
         var url = '/api/threads/' + currentBoard;
-        $('#boardTitle').text('Welcome to ' + window.location.pathname);
+        $('.board-title').text(window.location.pathname);
+
+        // Helper function to create html to display a thread
+        function createThreadHTML(threadObj) {
+          //
+          // THIS ARRAY SET UP IS FOR CODE READABILITIES AND TESTING!
+          // THIS IS NOT WHAT IT WOULD LOOK LIKE TO GO LIVE
+          //
+          var thread = [`<div class="thread" data-id="${threadObj._id}">`];
+          thread.push('<div class="main" >');
+          thread.push(
+            '<p class="id" >id: ' +
+              threadObj._id +
+              ' (' +
+              threadObj.created_on +
+              ')</p>',
+          );
+
+          // Add Thread Text
+          thread.push(
+            `<h5 class="thread-title"><a  href="/b/${currentBoard}/${threadObj._id}">` +
+              threadObj.text +
+              '</a></h5>',
+          );
+
+          thread.push(`<div class="d-flex flex-row justify-content-between">`);
+
+          // Add Thread Report Button
+          thread.push(
+            '<form id="reportThread"><input type="hidden" name="thread_id" value="' +
+              threadObj._id +
+              '"><input type="submit" class="btn btn-sm btn-warning" value="Report Thread"></form>',
+          );
+
+          // Add Thread Delete Button
+          thread.push(
+            '<form id="deleteThread" class="d-flex flex-row"><input type="hidden" value="' +
+              threadObj._id +
+              '" name="thread_id" required=""><input type="text" class="form-control form-control-sm" placeholder="password" name="delete_password" required=""><input type="submit" class="btn btn-sm btn-danger" value="Delete Thread"></form>',
+          );
+
+          thread.push('</div>');
+
+          // Add Replies to Thread
+          thread.push('</div><div class="replies">');
+          var hiddenCount = threadObj.reply_count - 3;
+          if (hiddenCount < 1) {
+            hiddenCount = 0;
+          }
+          thread.push(
+            '<h6><span class="num-replies">' +
+              threadObj.reply_count +
+              '</span>' +
+              ' replies total (' +
+              hiddenCount +
+              ' hidden)- <a href="/b/' +
+              currentBoard +
+              '/' +
+              threadObj._id +
+              '">See the full thread here</a></h6>',
+          );
+
+          // Add Replies onto Thread
+          threadObj.replies.forEach(function (replyObj) {
+            thread.push(createReplyHTML(threadObj, replyObj));
+          });
+
+          thread.push('</div>');
+
+          // Add Form to create new Reply on Thread
+          thread.push('<div class="new-reply-form">');
+          thread.push('<form id="newReply">');
+          thread.push(
+            '<input type="hidden" name="thread_id" value="' +
+              threadObj._id +
+              '">',
+          );
+          thread.push(
+            '<textarea class="form-control form-control-sm" rows="2" type="text" placeholder="Quick reply..." name="text" required=""></textarea>',
+          );
+          thread.push(
+            '<input class="form-control form-control-sm" type="text" placeholder="password to delete" name="delete_password" required=""><input class="btn btn-sm btn-info" type="submit" value="Post Reply">',
+          );
+          thread.push('</form></div></div>');
+
+          return thread.join('');
+        }
+
+        // Helper to create HTML for a single reply on a thread
+        function createReplyHTML(threadObj, replyObj) {
+          const reply = [];
+
+          reply.push('<div class="reply">');
+          reply.push(
+            '<p class="id">id: ' +
+              replyObj._id +
+              ' (' +
+              replyObj.created_on +
+              ')</p>',
+          );
+          reply.push('<p class="reply-text">' + replyObj.text + '</p>');
+
+          reply.push(`<div class="d-flex flex-row justify-content-between">`);
+
+          // Add Reply Report Button
+          reply.push(
+            '<form id="reportReply"><input type="hidden" name="thread_id" value="' +
+              threadObj._id +
+              '"><input type="hidden" name="reply_id" value="' +
+              replyObj._id +
+              '"><input type="submit" class="btn btn-sm btn-warning" value="Report Reply"></form>',
+          );
+
+          // Add Reply Delete Button
+          reply.push(
+            '<form id="deleteReply" class="d-flex flex-row"><input type="hidden" value="' +
+              threadObj._id +
+              '" name="thread_id" required=""><input type="hidden" value="' +
+              replyObj._id +
+              '" name="reply_id" required=""><input type="text" class="form-control form-control-sm" placeholder="password" name="delete_password" required=""><input type="submit" class="btn btn-sm btn-danger" value="Delete Reply"></form>',
+          );
+
+          reply.push('</div></div>');
+          return reply.join('');
+        }
+
+        // Get 10 most recent threads, and display them
         $.ajax({
           type: 'GET',
           url: url,
           success: function (data) {
             var boardThreads = [];
-            //
-            // THIS ARRAY SET UP IS FOR CODE READABILITIES AND TESTING!
-            // THIS IS NOT WHAT IT WOULD LOOK LIKE TO GO LIVE
-            //
-            data.forEach(function (ele) {
-              console.log(ele); //can I use typeScript please?!
-              var thread = ['<div class="thread">'];
-              thread.push('<div class="main">');
-              thread.push(
-                '<p class="id">id: ' +
-                  ele._id +
-                  ' (' +
-                  ele.created_on +
-                  ')</p>',
-              );
-              thread.push(
-                '<form id="reportThread"><input type="hidden" name="thread_id" value="' +
-                  ele._id +
-                  '"><input type="submit" value="Report"></form>',
-              );
-              thread.push(
-                '<form id="deleteThread"><input type="hidden" value="' +
-                  ele._id +
-                  '" name="thread_id" required=""><input type="text" placeholder="password" name="delete_password" required=""><input type="submit" value="Delete"></form>',
-              );
-              thread.push('<h3>' + ele.text + '</h3>');
-              thread.push('</div><div class="replies">');
-              var hiddenCount = ele.reply_count - 3;
-              if (hiddenCount < 1) {
-                hiddenCount = 0;
-              }
-              thread.push(
-                '<h5>' +
-                  ele.reply_count +
-                  ' replies total (' +
-                  hiddenCount +
-                  ' hidden)- <a href="' +
-                  window.location.pathname +
-                  ele._id +
-                  '">See the full thread here</a>.</h5>',
-              );
-              ele.replies.forEach(function (rep) {
-                thread.push('<div class="reply">');
-                thread.push(
-                  '<p class="id">id: ' +
-                    rep._id +
-                    ' (' +
-                    rep.created_on +
-                    ')</p>',
-                );
-                thread.push(
-                  '<form id="reportReply"><input type="hidden" name="thread_id" value="' +
-                    ele._id +
-                    '"><input type="hidden" name="reply_id" value="' +
-                    rep._id +
-                    '"><input type="submit" value="Report"></form>',
-                );
-                thread.push(
-                  '<form id="deleteReply"><input type="hidden" value="' +
-                    ele._id +
-                    '" name="thread_id" required=""><input type="hidden" value="' +
-                    rep._id +
-                    '" name="reply_id" required=""><input type="text" placeholder="password" name="delete_password" required=""><input type="submit" value="Delete"></form>',
-                );
-                thread.push('<p>' + rep.text + '</p>');
-                thread.push('</div>');
-              });
-              thread.push('<div class="newReply">');
-              thread.push(
-                '<form action="/api/replies/' +
-                  currentBoard +
-                  '/" method="post" id="newReply">',
-              );
-              thread.push(
-                '<input type="hidden" name="thread_id" value="' +
-                  ele._id +
-                  '">',
-              );
-              thread.push(
-                '<textarea rows="5" cols="80" type="text" placeholder="Quick reply..." name="text" required=""></textarea><br>',
-              );
-              thread.push(
-                '<input type="text" placeholder="password to delete" name="delete_password" required=""><input style="margin-left: 5px" type="submit" value="Submit">',
-              );
-              thread.push('</form></div></div></div>');
-              boardThreads.push(thread.join(''));
+
+            data.forEach(function (threadObj) {
+              boardThreads.push(createThreadHTML(threadObj));
             });
+
             $('#boardDisplay').html(boardThreads.join(''));
           },
         });
 
-        $('#newThread').submit(function () {
-          $(this).attr('action', '/api/threads/' + currentBoard);
+        // On Thread Submission, display newly created thread
+        $('#newThread').submit(function (e) {
+          e.preventDefault();
+          const form = $(this);
+          $.ajax({
+            type: 'POST',
+            url: '/api/threads/' + currentBoard,
+            data: $(this).serialize(),
+            success: function (data) {
+              if (!data.error) {
+                // Clear form
+                form.children('textarea').val('');
+                form.children('input[type=text]').val('');
+
+                $('#boardDisplay').prepend(createThreadHTML(data));
+              }
+            },
+          });
         });
 
+        // On Reply Submission, display newly created reply
+        $('#boardDisplay').on('submit', '#newReply', function (e) {
+          e.preventDefault();
+          const form = $(this);
+          console.log($(this).serialize());
+          const thread = $(this).parents('.thread');
+          $.ajax({
+            type: 'POST',
+            url: '/api/replies/' + currentBoard,
+            data: $(this).serialize(),
+            success: function (data) {
+              if (!data.error) {
+                // Clear form data
+                form.children('input[type=text]').val('');
+                form.children('textarea').val('');
+
+                thread.find('.num-replies').html(data.reply_count);
+
+                const _id = thread.attr('data-id');
+                thread
+                  .find('.replies')
+                  .append(
+                    createReplyHTML(
+                      { _id },
+                      data.replies[data.replies.length - 1],
+                    ),
+                  );
+              } else {
+                alert(data.error);
+              }
+            },
+          });
+        });
+
+        // Report a thread
         $('#boardDisplay').on('submit', '#reportThread', function (e) {
           var url = '/api/threads/' + currentBoard;
           $.ajax({
@@ -163,11 +348,15 @@
             url: url,
             data: $(this).serialize(),
             success: function (data) {
-              alert(data);
+              if (!data.error) {
+                alert(data);
+              }
             },
           });
           e.preventDefault();
         });
+
+        // Report a reply
         $('#boardDisplay').on('submit', '#reportReply', function (e) {
           var url = '/api/replies/' + currentBoard;
           $.ajax({
@@ -175,33 +364,55 @@
             url: url,
             data: $(this).serialize(),
             success: function (data) {
-              alert(data);
+              if (!data.error) {
+                alert(data);
+              }
             },
           });
           e.preventDefault();
         });
+
+        // Delete a Thread
         $('#boardDisplay').on('submit', '#deleteThread', function (e) {
-          var url = '/api/threads/' + currentBoard;
+          e.preventDefault();
+          const url = '/api/threads/' + currentBoard;
+          const threadEl = $(this).parents('.thread');
+
           $.ajax({
             type: 'DELETE',
             url: url,
             data: $(this).serialize(),
             success: function (data) {
-              alert(data);
+              // Delete thread on screen if successful
+              if (data === 'success') {
+                threadEl.remove();
+              }
             },
           });
+
           e.preventDefault();
         });
+
+        // Delete a Reply
         $('#boardDisplay').on('submit', '#deleteReply', function (e) {
+          console.log('DELETING REPLY');
           var url = '/api/replies/' + currentBoard;
+          const reply = $(this).parents('.reply');
+          console.log(reply.children('.reply-text'));
           $.ajax({
             type: 'DELETE',
             url: url,
             data: $(this).serialize(),
             success: function (data) {
-              alert(data);
+              if (data === 'success') {
+                // Remove Thread Text
+                reply.children('.reply-text').html('[deleted]');
+              } else {
+                alert('Incorrect Password');
+              }
             },
           });
+
           e.preventDefault();
         });
       });

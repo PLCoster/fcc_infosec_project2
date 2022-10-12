@@ -114,32 +114,50 @@ p.note {
   margin-top: 0;
 }
 
-/****** Original Styles ******/
-
-.replies {
-  margin-left: 50px;
-}
-
-.reply {
-  border: 1px dotted black;
-  margin: 5px;
-  padding: 5px;
-}
-
-.newReply {
-  margin: 10px 5px 10px 5px;
-}
+/****** Thread and Reply Styles (Board and Thread views) ******/
 
 .thread {
   border: 2px solid black;
-  padding: 5px;
-  margin-bottom: 5px;
+  padding: 10px 10px 0 10px;
+  margin-bottom: 10px;
+}
+
+.thread .btn-danger {
+  margin-left: 10px;
+}
+
+.thread input[type='text'] {
+  min-width: 100px;
+}
+
+.thread-title {
+  margin-top: 0;
+}
+
+.thread-title a {
+  text-decoration: none;
 }
 
 .id {
   font-size: 10.5px;
+  margin-bottom: 0;
+}
+
+.replies {
+  margin-left: 50px;
+  font-size: 1em;
+}
+
+.reply {
+  border: 1px dotted black;
+  margin: 10px;
+  padding: 5px;
+}
+
+.new-reply-form {
+  margin: 10px 10px 10px 60px;
 }
 
 #submitNewThread {
-  margin: 50px;
+  margin: 20px;
 }
