@@ -331,7 +331,7 @@ threadController.reportReplyByID = (req, res, next) => {
 // Middleware to delete text of Reply by its ID
 // Requires threadController.validateThreadAndReplyIDs to be called first
 threadController.deleteReplyByID = (req, res, next) => {
-  const { thread_id: _id, reply_id } = res.locals;
+  let { thread_id: _id, reply_id } = res.locals;
   const { board: board_name } = req.params;
   const { delete_password } = req.body;
 
@@ -353,7 +353,10 @@ threadController.deleteReplyByID = (req, res, next) => {
         });
       }
 
-      if (threadDocument.replies[0].delete_password !== delete_password) {
+      if (
+        threadDocument.replies.filter((reply) => reply._id.equals(reply_id))[0]
+          .delete_password !== delete_password
+      ) {
         return res.json('incorrect password');
       }
 
