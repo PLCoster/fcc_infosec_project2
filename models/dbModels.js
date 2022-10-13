@@ -1,6 +1,10 @@
 // Set up mongoose connection to MONGO DB:
 const mongoose = require('mongoose');
 
+// bcrypt for hashing
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
+
 const MONGO_URI =
   process.env.NODE_ENV === 'test'
     ? process.env.TEST_MONGO_URI
@@ -43,6 +47,36 @@ const threadSchema = new mongoose.Schema({
   reply_count: { type: Number, default: 0 },
   expire_after_seconds: { type: Date, default: Date.now, expires: 86400 },
 });
+
+// Middleware to hash Thread and Reply deletion passwords when they are saved:
+async function hashPasswordOnSave(next) {
+  try {
+    if (this.isModified('delete_password')) {
+      this.delete_password = await bcrypt.hash(
+        this.delete_password,
+        SALT_ROUNDS,
+      );
+    }
+
+    // Ensure passwords of all replies are hashed
+    for (let i = 0; i < this.replies.length; i += 1) {
+      const reply = this.replies[i];
+      // Hack to only hash unhashed passwords (when inserting Threads with pre-existing replies e.g. during testing)
+      if (reply.delete_password.slice(0, 4) !== '$2b$') {
+        reply.delete_password = await bcrypt.hash(
+          reply.delete_password,
+          SALT_ROUNDS,
+        );
+      }
+    }
+
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+}
+
+threadSchema.pre('save', hashPasswordOnSave);
 
 const Reply = mongoose.model('replies', replySchema);
 const Thread = mongoose.model('threads', threadSchema);

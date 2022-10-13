@@ -50,7 +50,9 @@ suite('Functional Tests', function () {
           }
 
           // Add Sample Threads and Replies to Collection
-          return Thread.insertMany(sampleThreads);
+          return Promise.all(
+            sampleThreads.map((threadObj) => Thread.create(threadObj)),
+          );
         })
         .then((result) => {
           if (!result) {
@@ -58,6 +60,7 @@ suite('Functional Tests', function () {
               'Error during API Suite Setup - Insertion of sample threads failed',
             );
           }
+          console.log('\n Suite Setup Complete \n');
           done();
         })
         .catch((err) => done(err));
@@ -72,6 +75,7 @@ suite('Functional Tests', function () {
               'Error during API Suite Teardown - Database Deletion Failed',
             );
           }
+          console.log('\n Suite Teardown Complete \n');
           done();
         })
         .catch((err) => done(err));
@@ -407,6 +411,8 @@ suite('Functional Tests', function () {
           thread_id: threadToDelete._id,
           delete_password: threadToDelete.delete_password,
         };
+
+        console.log('DELETE PASSWORD IS: ', body.delete_password);
 
         const board_name = validBoardName;
 

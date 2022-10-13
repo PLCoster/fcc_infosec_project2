@@ -1,6 +1,10 @@
 const { Reply, Thread } = require('../models/dbModels');
 const { ObjectId } = require('mongoose').Types;
 
+// bcrypt for password comparison
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = 10;
+
 // Mongoose option object for specifying fields not to return
 const desiredFieldsToRemove = {
   delete_password: 0,
@@ -199,20 +203,25 @@ threadController.deleteThreadByID = (req, res, next) => {
         });
       }
 
-      if (threadDoc.delete_password !== delete_password) {
-        return res.json('incorrect password');
-      }
+      // Compare provided password to stored password
+      bcrypt
+        .compare(delete_password, threadDoc.delete_password)
+        .then((passMatch) => {
+          if (!passMatch) {
+            return res.json('incorrect password');
+          }
 
-      // Otherwise Thread exists and password is correct, delete it:
-      Thread.deleteOne({
-        _id: thread_id,
-        delete_password,
-      }).then((deleteResult) => {
-        if (deleteResult.deletedCount !== 1) {
-          throw new Error('No document was deleted in database');
-        }
-        return next();
-      });
+          // Otherwise Thread exists and password is correct, delete it:
+          Thread.deleteOne({
+            _id: thread_id,
+          }).then((deleteResult) => {
+            if (deleteResult.deletedCount !== 1) {
+              throw new Error('No document was deleted in database');
+            }
+
+            return next();
+          });
+        });
     })
     .catch((err) => {
       return next(
@@ -260,28 +269,32 @@ threadController.addReplyToThreadByID = (req, res, next) => {
     });
   }
 
-  // Otherwise add reply to Thread, return Thread with new reply
-  const created_on = Date.now(); // bumped_on of Thread and created_on of Reply
-  Thread.findOneAndUpdate(
-    { _id, board_name },
-    {
-      bumped_on: created_on,
-      $push: { replies: { text, delete_password, created_on } },
-      $inc: { reply_count: 1 },
-    },
-    {
-      new: true,
-      fields: desiredFieldsToRemove,
-    },
-  )
-    .then((threadDocument) => {
-      if (!threadDocument) {
-        return res.json({
-          error: `Thread ${_id} on Board ${board_name} not found`,
-        });
-      }
-      res.locals.threadDocument = threadDocument;
-      return next();
+  bcrypt
+    .hash(delete_password, SALT_ROUNDS)
+    .then((hash) => {
+      // Otherwise add reply to Thread, return Thread with new reply
+      const created_on = Date.now(); // bumped_on of Thread and created_on of Reply
+      Thread.findOneAndUpdate(
+        { _id, board_name },
+        {
+          bumped_on: created_on,
+          $push: { replies: { text, delete_password: hash, created_on } },
+          $inc: { reply_count: 1 },
+        },
+        {
+          new: true,
+          fields: desiredFieldsToRemove,
+        },
+      ).then((threadDocument) => {
+        if (!threadDocument) {
+          return res.json({
+            error: `Thread ${_id} on Board ${board_name} not found`,
+          });
+        }
+        res.locals.threadDocument = threadDocument;
+
+        return next();
+      });
     })
     .catch((err) => {
       return next(
@@ -353,30 +366,35 @@ threadController.deleteReplyByID = (req, res, next) => {
         });
       }
 
-      if (
-        threadDocument.replies.filter((reply) => reply._id.equals(reply_id))[0]
-          .delete_password !== delete_password
-      ) {
-        return res.json('incorrect password');
-      }
+      // Get the required reply password hash:
+      reply_password = threadDocument.replies.filter((reply) =>
+        reply._id.equals(reply_id),
+      )[0].delete_password;
 
-      // Otherwise Reply exists on Thread - delete Reply
-      Thread.findOneAndUpdate(
-        { _id, board_name, 'replies._id': reply_id },
-        { 'replies.$.text': '[deleted]' },
-        {
-          new: true,
-        },
-      ).then((updatedDocument) => {
-        // In case of thread deletion between initial check and reply deletion
-        if (!updatedDocument) {
-          return res.json({
-            // !!! Non-200 error code?
-            error: `Reply ${reply_id} on Thread ${_id} on Board ${board_name} not found`,
-          });
+      // Compare hashed passwords
+      bcrypt.compare(delete_password, reply_password).then((passMatch) => {
+        if (!passMatch) {
+          return res.json('incorrect password');
         }
 
-        return next();
+        // Otherwise Reply exists on Thread - delete Reply
+        Thread.findOneAndUpdate(
+          { _id, board_name, 'replies._id': reply_id },
+          { 'replies.$.text': '[deleted]' },
+          {
+            new: true,
+          },
+        ).then((updatedDocument) => {
+          // In case of thread deletion between initial check and reply deletion
+          if (!updatedDocument) {
+            return res.json({
+              // !!! Non-200 error code?
+              error: `Reply ${reply_id} on Thread ${_id} on Board ${board_name} not found`,
+            });
+          }
+
+          return next();
+        });
       });
     })
     .catch((err) => {
