@@ -49,10 +49,8 @@ app.route('/b/:board/').get(function (req, res) {
   console.log('HIT ROUTE: ', req.params);
   res.sendFile(process.cwd() + '/views/board.html');
 });
+
 app.route('/b/:board/:threadid').get(function (req, res) {
-  //!!! Check if thread exists here
-  //If no thread return to home page
-  console.log('THREAD HTML PAGE HIT');
   res.sendFile(process.cwd() + '/views/thread.html');
 });
 

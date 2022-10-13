@@ -412,8 +412,6 @@ suite('Functional Tests', function () {
           delete_password: threadToDelete.delete_password,
         };
 
-        console.log('DELETE PASSWORD IS: ', body.delete_password);
-
         const board_name = validBoardName;
 
         const expectedResponse = 'success';

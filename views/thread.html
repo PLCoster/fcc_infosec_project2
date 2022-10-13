@@ -269,7 +269,6 @@
           url: replyURL,
           data: { thread_id: currentURL[1] },
           success: function (threadData) {
-            console.log(threadData);
             if (!threadData.error) {
               const boardThreads = [];
               //
