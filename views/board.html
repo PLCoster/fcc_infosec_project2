@@ -64,7 +64,7 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link active" href="."> Message Board Home </a>
+              <a class="nav-link active" href="/"> Message Board Home </a>
             </li>
           </ul>
         </div>
@@ -111,7 +111,7 @@
         <hr />
 
         <section id="board-threads">
-          <h3>Most Recent Threads:</h3>
+          <h3>Recently Active Threads:</h3>
           <!-- Thread posts go here -->
           <section id="boardDisplay"></section>
         </section>
@@ -139,21 +139,40 @@
       crossorigin="anonymous"
     ></script>
 
+    <!-- CUSTOM SCRIPTS -->
     <script>
+      // Helper function to make any displayed text HTML-safe
+      function replaceUnsafeCharsInTranslations(input) {
+        if (typeof input !== 'string') {
+          return input;
+        }
+
+        const charReplacements = {
+          '<': '&lt;',
+          '>': '&gt;',
+          '&': '&amp;',
+          '"': '&quot;',
+          "'": '&#39;',
+        };
+
+        return input
+          .split('')
+          .map((char) =>
+            char in charReplacements ? charReplacements[char] : char,
+          )
+          .join('');
+      }
+
       $(function () {
         // Update the board title based on window URL:
-        var currentBoard = window.location.pathname.slice(3).replace('/', '');
-        console.log('currentBoard is: ', currentBoard);
-        var url = '/api/threads/' + currentBoard;
+        const currentBoard = window.location.pathname.slice(3).replace('/', '');
+
+        const url = '/api/threads/' + currentBoard;
         $('.board-title').text(window.location.pathname);
 
         // Helper function to create html to display a thread
         function createThreadHTML(threadObj) {
-          //
-          // THIS ARRAY SET UP IS FOR CODE READABILITIES AND TESTING!
-          // THIS IS NOT WHAT IT WOULD LOOK LIKE TO GO LIVE
-          //
-          var thread = [`<div class="thread" data-id="${threadObj._id}">`];
+          const thread = [`<div class="thread" data-id="${threadObj._id}">`];
           thread.push('<div class="main" >');
           thread.push(
             '<p class="id" >id: ' +
@@ -166,7 +185,7 @@
           // Add Thread Text
           thread.push(
             `<h5 class="thread-title"><a  href="/b/${currentBoard}/${threadObj._id}">` +
-              threadObj.text +
+              replaceUnsafeCharsInTranslations(threadObj.text) +
               '</a></h5>',
           );
 
@@ -190,7 +209,7 @@
 
           // Add Replies to Thread
           thread.push('</div><div class="replies">');
-          var hiddenCount = threadObj.reply_count - 3;
+          let hiddenCount = threadObj.reply_count - 3;
           if (hiddenCount < 1) {
             hiddenCount = 0;
           }
@@ -245,7 +264,11 @@
               replyObj.created_on +
               ')</p>',
           );
-          reply.push('<p class="reply-text">' + replyObj.text + '</p>');
+          reply.push(
+            '<p class="reply-text">' +
+              replaceUnsafeCharsInTranslations(replyObj.text) +
+              '</p>',
+          );
 
           reply.push(`<div class="d-flex flex-row justify-content-between">`);
 
@@ -276,7 +299,11 @@
           type: 'GET',
           url: url,
           success: function (data) {
-            var boardThreads = [];
+            const boardThreads = [];
+            //
+            // THIS ARRAY SET UP IS FOR CODE READABILITIES AND TESTING!
+            // THIS IS NOT WHAT IT WOULD LOOK LIKE TO GO LIVE
+            //
 
             data.forEach(function (threadObj) {
               boardThreads.push(createThreadHTML(threadObj));
@@ -290,6 +317,7 @@
         $('#newThread').submit(function (e) {
           e.preventDefault();
           const form = $(this);
+
           $.ajax({
             type: 'POST',
             url: '/api/threads/' + currentBoard,
@@ -301,6 +329,8 @@
                 form.children('input[type=text]').val('');
 
                 $('#boardDisplay').prepend(createThreadHTML(data));
+              } else {
+                alert(data.error);
               }
             },
           });
@@ -310,8 +340,8 @@
         $('#boardDisplay').on('submit', '#newReply', function (e) {
           e.preventDefault();
           const form = $(this);
-          console.log($(this).serialize());
           const thread = $(this).parents('.thread');
+
           $.ajax({
             type: 'POST',
             url: '/api/replies/' + currentBoard,
@@ -342,7 +372,9 @@
 
         // Report a thread
         $('#boardDisplay').on('submit', '#reportThread', function (e) {
-          var url = '/api/threads/' + currentBoard;
+          e.preventDefault();
+          const url = '/api/threads/' + currentBoard;
+
           $.ajax({
             type: 'PUT',
             url: url,
@@ -350,15 +382,18 @@
             success: function (data) {
               if (!data.error) {
                 alert(data);
+              } else {
+                alert(data.error);
               }
             },
           });
-          e.preventDefault();
         });
 
         // Report a reply
         $('#boardDisplay').on('submit', '#reportReply', function (e) {
-          var url = '/api/replies/' + currentBoard;
+          e.preventDefault();
+          const url = '/api/replies/' + currentBoard;
+
           $.ajax({
             type: 'PUT',
             url: url,
@@ -366,10 +401,11 @@
             success: function (data) {
               if (!data.error) {
                 alert(data);
+              } else {
+                alert(data.error);
               }
             },
           });
-          e.preventDefault();
         });
 
         // Delete a Thread
@@ -386,19 +422,21 @@
               // Delete thread on screen if successful
               if (data === 'success') {
                 threadEl.remove();
+              } else if (!data.error) {
+                alert(data);
+              } else {
+                alert(data.error);
               }
             },
           });
-
-          e.preventDefault();
         });
 
         // Delete a Reply
         $('#boardDisplay').on('submit', '#deleteReply', function (e) {
-          console.log('DELETING REPLY');
-          var url = '/api/replies/' + currentBoard;
+          e.preventDefault();
+          const url = '/api/replies/' + currentBoard;
           const reply = $(this).parents('.reply');
-          console.log(reply.children('.reply-text'));
+
           $.ajax({
             type: 'DELETE',
             url: url,
@@ -407,13 +445,13 @@
               if (data === 'success') {
                 // Remove Thread Text
                 reply.children('.reply-text').html('[deleted]');
+              } else if (!data.error) {
+                alert(data);
               } else {
-                alert('Incorrect Password');
+                alert(data.error);
               }
             },
           });
-
-          e.preventDefault();
         });
       });
     </script>
