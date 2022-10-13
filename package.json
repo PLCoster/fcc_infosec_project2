@@ -9,6 +9,7 @@
     "test": "NODE_ENV=test mocha --timeout 5000 --recursive --exit --ui tdd tests/"
   },
   "dependencies": {
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.15.2",
     "chai": "^4.2.0",
     "chai-http": "^3.0.0",
