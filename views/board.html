@@ -168,7 +168,7 @@
         const currentBoard = window.location.pathname.slice(3).replace('/', '');
 
         const url = '/api/threads/' + currentBoard;
-        $('.board-title').text(window.location.pathname);
+        $('.board-title').text('/b/' + currentBoard);
 
         // Helper function to create html to display a thread
         function createThreadHTML(threadObj) {
