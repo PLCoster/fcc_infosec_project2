@@ -46,7 +46,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Sample Front-End - Boards and Individual Thread Pages
 app.route('/b/:board/').get(function (req, res) {
-  console.log('HIT ROUTE: ', req.params);
   res.sendFile(process.cwd() + '/views/board.html');
 });
 
